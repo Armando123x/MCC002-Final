@@ -1,16 +1,28 @@
-# Python cache
+﻿# Python
 __pycache__/
 *.py[cod]
-*$py.class
 
-# Jupyter temporales
+# Entorno virtual
+.venv/
+venv/
+
+# Jupyter
 .ipynb_checkpoints/
 
-# Entornos virtuales
-venv/
-env/
-.venv/
+# Editores
+.vscode/
+.idea/
 
-# Archivos de sistema
+# Archivos temporales
+*.tmp
+*.bak
+~$*
+
+# Sistema operativo
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# Credenciales
+.env
+kaggle.json
