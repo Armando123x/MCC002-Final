@@ -1,0 +1,16 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter temporales
+.ipynb_checkpoints/
+
+# Entornos virtuales
+venv/
+env/
+.venv/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
