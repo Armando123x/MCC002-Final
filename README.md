@@ -24,8 +24,6 @@ Trabajo Práctico Final Integrador del curso **MCC002 — Probabilidad y Estadí
 * **Henry Sánchez Alvarado**
 * **Alex Segura Núñez**
 
-Todos los integrantes deben conocer y comprender la totalidad del proyecto, incluido el análisis bayesiano, y estar en capacidad de explicar cualquier sección durante la sustentación oral.
-
 ## Descripción del proyecto
 
 El proyecto estudia el problema de la clasificación del riesgo crediticio mediante herramientas de probabilidad, inferencia estadística y modelamiento predictivo.
@@ -109,7 +107,7 @@ Se desarrollarán estadísticas descriptivas globales y por clase de riesgo, inc
 * curtosis;
 * frecuencias y proporciones para variables categóricas.
 
-El trabajo incluirá al menos seis visualizaciones de calidad académica, entre ellas:
+El trabajo incluirá al menos seis visualizaciones, entre ellas:
 
 * distribución de la clase de riesgo;
 * tasa de mal crédito según propósito del préstamo;
@@ -235,11 +233,9 @@ MCC002-Final/
 │   └── MCC002_Grupo5_Notebook.ipynb
 │
 ├── informe/
-│   ├── MCC002_Grupo5_Informe.docx
 │   └── MCC002_Grupo5_Informe.pdf
 │
 ├── presentacion/
-│   ├── MCC002_Grupo5_Slides.pptx
 │   └── MCC002_Grupo5_Slides.pdf
 │
 ├── resultados/
