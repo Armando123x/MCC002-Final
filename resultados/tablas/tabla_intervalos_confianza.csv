@@ -1,0 +1,4 @@
+﻿parametro,metodo,estimacion,limite_inferior,limite_superior,unidad,amplitud
+Proporción de mal crédito,Wilson,0.3,0.2724068424770048,0.3291238609172172,proporción,0.056717018440212374
+Proporción de mal crédito,"Bootstrap percentil (B = 10,000)",0.3,0.272,0.329,proporción,0.056999999999999995
+Media de la duración,t de Student,20.903,20.15469405992328,21.651305940076718,meses,1.4966118801534378
