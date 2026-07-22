@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+/data
 # Jupyter temporales
 .ipynb_checkpoints/
 
