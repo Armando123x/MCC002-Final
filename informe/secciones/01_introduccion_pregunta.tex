@@ -1,6 +1,149 @@
 \section{Introducción y pregunta de investigación}
 \label{sec:introduccion}
 
+La evaluación del riesgo de crédito es una decisión central para las
+instituciones financieras. Antes de otorgar un préstamo, la entidad debe
+estimar si el solicitante tendrá capacidad y disposición para cumplir con
+las obligaciones pactadas. Esta decisión se realiza bajo incertidumbre:
+personas con perfiles similares pueden presentar comportamientos de pago
+distintos y la información disponible al momento de la solicitud no
+permite conocer con certeza el resultado futuro.
+
+Desde una perspectiva de ciencia de datos, el problema consiste en
+identificar patrones estadísticos que permitan distinguir entre
+solicitantes con menor y mayor riesgo. Sin embargo, el objetivo no debe
+reducirse a maximizar la proporción total de clasificaciones correctas.
+En riesgo crediticio, los errores tienen consecuencias diferentes. Aprobar
+a un solicitante que posteriormente incumple puede generar pérdidas de
+capital, costos de cobranza y deterioro de la cartera; rechazar a un
+solicitante solvente implica perder ingresos potenciales y excluir una
+operación que pudo haber sido rentable.
+
+Esta asimetría obliga a evaluar los modelos no solo por su capacidad
+predictiva, sino también por la forma en que sus decisiones cambian al
+modificar el umbral de clasificación. Por ello, el análisis combina tres
+niveles complementarios. Primero, se estudian las características de la
+cartera y las asociaciones marginales entre las variables observadas y la
+clase de riesgo. Segundo, se construyen modelos que permiten evaluar estas
+asociaciones de manera conjunta y estimar probabilidades de mal crédito.
+Tercero, se incorpora una perspectiva de decisión, en la cual el umbral
+de clasificación se relaciona con el costo desigual de los errores.
+
+El estudio utiliza el conjunto \textit{Statlog German Credit Data},
+disponible en el UCI Machine Learning Repository
+\parencite{hofmann1994statlog}. El dataset contiene información sobre
+características financieras, personales y contractuales de solicitantes
+de crédito, junto con una clasificación final como buen o mal riesgo.
+Su estructura permite desarrollar un flujo completo de análisis
+descriptivo, inferencial, predictivo y bayesiano.
+
+\subsection{Pregunta central}
+
+De acuerdo con la consigna asignada al Grupo 5, la pregunta que orienta
+el trabajo es:
+
+\begin{quote}
+    \itshape
+    ¿Qué factores explican la probabilidad de que un solicitante sea
+    clasificado como mal riesgo crediticio?
+\end{quote}
+
+En este informe, el término ``explican'' se utiliza en un sentido
+estadístico y predictivo. Las asociaciones identificadas permiten
+describir cómo cambia la probabilidad estimada de mal crédito cuando
+varían determinadas características, manteniendo constantes las demás
+variables incluidas en el modelo. Debido a que se trabaja con datos
+observacionales, estas asociaciones no deben interpretarse como efectos
+causales.
+
+\subsection{Preguntas secundarias}
+
+La pregunta central se desarrolla mediante cinco preguntas específicas:
+
+\begin{enumerate}
+    \item ¿Cuál es la proporción global de malos créditos y cuál es la
+    incertidumbre asociada con su estimación?
+
+    \item ¿La tasa de mal crédito difiere según el propósito declarado
+    del préstamo?
+
+    \item ¿La duración y el monto del crédito presentan diferencias
+    entre los solicitantes clasificados como buenos y malos riesgos?
+
+    \item ¿Qué variables conservan una asociación relevante con el
+    riesgo crediticio cuando se analizan de manera conjunta?
+
+    \item ¿Cómo cambia la clasificación de los solicitantes al modificar
+    el umbral de decisión y considerar costos asimétricos?
+\end{enumerate}
+
+Estas preguntas conectan la caracterización de la cartera con la
+inferencia estadística y la evaluación predictiva. Las primeras tres se
+concentran en proporciones, diferencias entre grupos y asociaciones
+marginales. La cuarta requiere un modelo multivariable que permita
+distinguir el efecto condicional de cada predictor. La quinta traslada
+las probabilidades estimadas a una regla de decisión y evalúa las
+consecuencias de modificar el punto de corte.
+
+\subsection{Objetivo general}
+
+Analizar los factores asociados con la probabilidad de mal riesgo
+crediticio mediante un flujo estadístico reproducible que integre
+análisis exploratorio, inferencia frecuentista, modelamiento de
+regresión, evaluación predictiva bajo costos asimétricos e inferencia
+bayesiana.
+
+\subsection{Objetivos específicos}
+
+\begin{enumerate}
+    \item Describir la composición del conjunto de datos y documentar la
+    codificación de las variables, en particular la definición de buen y
+    mal riesgo crediticio.
+
+    \item Estimar la proporción global de malos créditos y cuantificar su
+    incertidumbre mediante intervalos analíticos y procedimientos de
+    remuestreo.
+
+    \item Evaluar la asociación entre la clase de riesgo, el propósito
+    del préstamo y las principales variables cuantitativas, acompañando
+    las pruebas de hipótesis con medidas de tamaño de efecto.
+
+    \item Ajustar y diagnosticar modelos de regresión que permitan
+    estudiar relaciones multivariables y estimar la probabilidad de mal
+    crédito.
+
+    \item Evaluar el desempeño del modelo de clasificación mediante
+    métricas discriminativas y operativas, evitando utilizar la
+    exactitud global como único criterio.
+
+    \item Comparar el umbral convencional de \(0.50\) con un umbral
+    justificado mediante una relación de costos asimétrica.
+
+    \item Desarrollar un análisis bayesiano de la tasa de mal crédito,
+    incluyendo posterior conjugada, estimación MAP, intervalo creíble y
+    sensibilidad a la elección del prior.
+
+    \item Comparar los resultados frecuentistas y bayesianos, e
+    identificar los supuestos y limitaciones que condicionan su
+    interpretación.
+\end{enumerate}
+
+\subsection{Alcance del análisis}
+
+El trabajo tiene un alcance explicativo-asociativo y predictivo. Busca
+identificar variables que aporten información sobre el riesgo dentro de
+la muestra analizada y evaluar un procedimiento de clasificación
+reproducible. No pretende establecer relaciones causales ni proponer un
+sistema listo para su aplicación directa en una institución financiera.
+
+La antigüedad del dataset, su contexto geográfico y la ausencia de
+información sobre solicitantes rechazados limitan la generalización de
+los resultados. Asimismo, una aplicación real requeriría recalibración,
+validación temporal, evaluación sobre datos externos, revisión de
+equidad y estimación institucional de los costos económicos asociados
+con cada tipo de error. Estas restricciones se desarrollan con mayor
+detalle en la Sección~\ref{sec:limitaciones}.
+
 % Contenido previsto:
 % - Contexto del riesgo de crédito.
 % - Problema de decisión y costo de errores.
