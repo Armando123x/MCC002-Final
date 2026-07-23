@@ -1,6 +1,628 @@
 \section{Análisis bayesiano}
 \label{sec:bayes}
 
+El análisis bayesiano complementa la inferencia frecuentista mediante una
+representación probabilística de la incertidumbre sobre los parámetros.
+Se desarrollaron dos ejercicios:
+
+\begin{enumerate}
+    \item un modelo Beta--Binomial conjugado para la proporción global de
+    malos créditos;
+
+    \item una regresión logística bayesiana estimada mediante
+    Metropolis--Hastings para estudiar la distribución posterior del
+    coeficiente de duración.
+\end{enumerate}
+
+El primer ejercicio permite obtener la distribución posterior de forma
+analítica y evaluar la sensibilidad de los resultados frente a distintas
+distribuciones previas. El segundo requiere simulación MCMC porque la
+regresión logística no dispone de una posterior conjugada de forma
+cerrada.
+
+\subsection{Modelo Beta--Binomial para la tasa de mal crédito}
+\label{subsec:beta-binomial}
+
+En el enfoque frecuentista, la tasa de mal crédito se trató como un
+parámetro fijo pero desconocido. A partir de:
+
+\[
+x=300,
+\qquad
+n=1000,
+\]
+
+se obtuvo la estimación:
+
+\[
+\widehat{p}
+=
+\frac{x}{n}
+=
+0.300.
+\]
+
+En el enfoque bayesiano, la incertidumbre sobre \(p\) se representa
+mediante una distribución de probabilidad. Después de observar los datos,
+la distribución previa se actualiza aplicando el teorema de Bayes:
+
+\[
+\pi(p\mid x)
+\propto
+L(x\mid p)\pi(p),
+\]
+
+donde:
+
+\begin{itemize}
+    \item \(\pi(p)\) es la distribución previa o \textit{prior};
+
+    \item \(L(x\mid p)\) es la verosimilitud aportada por los datos;
+
+    \item \(\pi(p\mid x)\) es la distribución posterior.
+\end{itemize}
+
+El resultado no es únicamente una estimación puntual, sino una
+distribución completa que describe qué valores de \(p\) son más
+compatibles con el prior y la información observada.
+
+\subsubsection{Verosimilitud binomial}
+
+Sea \(X\) el número de malos créditos observados entre \(n\) registros.
+El modelo de muestreo es:
+
+\[
+X\mid p
+\sim
+\operatorname{Binomial}(n,p).
+\]
+
+La función de probabilidad es:
+
+\[
+\Pr(X=x\mid p)
+=
+\binom{n}{x}
+p^x(1-p)^{n-x}.
+\]
+
+Para la inferencia sobre \(p\), los términos que no dependen del
+parámetro pueden omitirse. La verosimilitud queda expresada como:
+
+\[
+L(p\mid x)
+\propto
+p^x(1-p)^{n-x}.
+\]
+
+En el problema analizado:
+
+\[
+L(p\mid x)
+\propto
+p^{300}(1-p)^{700}.
+\]
+
+\subsubsection{Distribución previa Beta}
+
+Se asigna a la tasa una distribución previa:
+
+\[
+p
+\sim
+\operatorname{Beta}(\alpha,\beta).
+\]
+
+Su densidad es:
+
+\[
+\pi(p)
+=
+\frac{
+    1
+}{
+    B(\alpha,\beta)
+}
+p^{\alpha-1}
+(1-p)^{\beta-1},
+\qquad
+0<p<1,
+\]
+
+donde \(B(\alpha,\beta)\) es la función Beta.
+
+Omitiendo la constante de normalización:
+
+\[
+\pi(p)
+\propto
+p^{\alpha-1}
+(1-p)^{\beta-1}.
+\]
+
+La media previa es:
+
+\[
+\operatorname{E}[p]
+=
+\frac{\alpha}{\alpha+\beta}.
+\]
+
+Los parámetros \(\alpha\) y \(\beta\) controlan tanto la localización como
+la concentración de la información previa.
+
+\subsubsection{Posterior conjugada}
+
+Al combinar el prior y la verosimilitud:
+
+\[
+\begin{aligned}
+\pi(p\mid x)
+&\propto
+p^x(1-p)^{n-x}
+p^{\alpha-1}(1-p)^{\beta-1}\\
+&\propto
+p^{\alpha+x-1}
+(1-p)^{\beta+n-x-1}.
+\end{aligned}
+\]
+
+Este núcleo corresponde nuevamente a una distribución Beta. Por tanto:
+
+\[
+p\mid X=x
+\sim
+\operatorname{Beta}
+\left(
+    \alpha+x,\,
+    \beta+n-x
+\right).
+\]
+
+La actualización puede interpretarse como la incorporación de \(x\)
+malos créditos al primer parámetro y \(n-x\) buenos créditos al segundo:
+
+\[
+\alpha_{\mathrm{post}}
+=
+\alpha+x,
+\]
+
+\[
+\beta_{\mathrm{post}}
+=
+\beta+n-x.
+\]
+
+Esta propiedad se denomina conjugación. Permite obtener la posterior
+analíticamente, sin recurrir a métodos de simulación.
+
+\subsection{Resúmenes de la distribución posterior}
+
+Para cada prior se calcularon tres resúmenes: la media posterior, la
+estimación MAP y el intervalo creíble del \(95\,\%\).
+
+\subsubsection{Media posterior}
+
+La media posterior es:
+
+\[
+\operatorname{E}[p\mid x]
+=
+\frac{
+    \alpha+x
+}{
+    \alpha+\beta+n
+}.
+\]
+
+Esta cantidad representa el valor esperado de la tasa después de combinar
+la información previa con los datos.
+
+\subsubsection{Estimación MAP}
+
+La estimación de máxima densidad posterior es:
+
+\[
+\widehat{p}_{\mathrm{MAP}}
+=
+\frac{
+    \alpha+x-1
+}{
+    \alpha+\beta+n-2
+},
+\]
+
+siempre que los dos parámetros posteriores sean mayores que uno.
+
+El MAP identifica el valor de \(p\) donde la densidad posterior alcanza
+su máximo.
+
+\subsubsection{Intervalo creíble}
+
+El intervalo creíble central del \(95\,\%\) se obtiene con los cuantiles
+\(0.025\) y \(0.975\) de la posterior:
+
+\[
+\Pr
+\left(
+    p_{\mathrm{inf}}
+    \leq
+    p
+    \leq
+    p_{\mathrm{sup}}
+    \mid x
+\right)
+=
+0.95.
+\]
+
+A diferencia de un intervalo de confianza frecuentista, este intervalo
+permite una interpretación probabilística directa: condicionados al
+prior y a los datos observados, la probabilidad posterior de que \(p\)
+se encuentre entre ambos límites es del \(95\,\%\).
+
+\subsection{Distribuciones previas evaluadas}
+
+Se compararon tres priors con distintos niveles de información.
+
+\subsubsection{Prior uniforme}
+
+El primer modelo utiliza:
+
+\[
+p
+\sim
+\operatorname{Beta}(1,1).
+\]
+
+Esta distribución es uniforme en el intervalo \([0,1]\):
+
+\[
+\pi(p)=1.
+\]
+
+Antes de observar los datos, asigna la misma densidad a cualquier valor
+posible de la tasa. Se utiliza como una especificación inicial poco
+informativa.
+
+La posterior resultante es:
+
+\[
+p\mid x
+\sim
+\operatorname{Beta}(301,701).
+\]
+
+\subsubsection{Prior de Jeffreys}
+
+El segundo modelo utiliza:
+
+\[
+p
+\sim
+\operatorname{Beta}(0.5,0.5).
+\]
+
+El prior de Jeffreys es una alternativa no informativa construida a
+partir de la información de Fisher del modelo binomial. Su densidad
+asigna mayor peso a los extremos del intervalo que el prior uniforme.
+
+La posterior es:
+
+\[
+p\mid x
+\sim
+\operatorname{Beta}(300.5,700.5).
+\]
+
+Su inclusión permite comprobar si una definición no informativa diferente
+produce cambios apreciables en la inferencia.
+
+\subsubsection{Prior informativo débil}
+
+El tercer modelo utiliza:
+
+\[
+p
+\sim
+\operatorname{Beta}(6,18).
+\]
+
+Su media previa es:
+
+\[
+\operatorname{E}[p]
+=
+\frac{6}{6+18}
+=
+0.25.
+\]
+
+La concentración total es:
+
+\[
+\alpha+\beta
+=
+24.
+\]
+
+Este prior representa una expectativa inicial de que la tasa se encuentre
+alrededor del \(25\,\%\), pero con una concentración pequeña frente a las
+\(1000\) observaciones disponibles. Por ello, se considera informativo
+débil.
+
+La posterior resultante es:
+
+\[
+p\mid x
+\sim
+\operatorname{Beta}(306,718).
+\]
+
+El propósito de este prior no es imponer una tasa de \(25\,\%\), sino
+evaluar cuánto se desplaza la inferencia cuando se incorpora una
+expectativa previa moderadamente distinta de la tasa observada.
+
+\subsection{Resultados posteriores}
+
+La Tabla~\ref{tab:resultados-beta-binomial} presenta los resultados para
+los tres priors.
+
+\begin{table}[H]
+    \centering
+    \caption{Resultados del modelo Beta--Binomial bajo diferentes
+    distribuciones previas.}
+    \label{tab:resultados-beta-binomial}
+
+    \small
+    \begin{tabularx}{0.98\textwidth}{
+        @{}
+        >{\raggedright\arraybackslash}p{3.4cm}
+        >{\centering\arraybackslash}p{2.5cm}
+        >{\centering\arraybackslash}p{1.6cm}
+        >{\centering\arraybackslash}p{1.8cm}
+        X
+        @{}
+    }
+        \toprule
+        Prior
+        & Posterior
+        & MAP
+        & Media
+        & Intervalo creíble del \(95\,\%\) \\
+        \midrule
+
+        \(\operatorname{Beta}(1,1)\), uniforme
+        & \(\operatorname{Beta}(301,701)\)
+        & \num{0.3000}
+        & \num{0.3004}
+        & \([0.2724,\;0.3291]\) \\
+
+        \(\operatorname{Beta}(0.5,0.5)\), Jeffreys
+        & \(\operatorname{Beta}(300.5,700.5)\)
+        & \num{0.2998}
+        & \num{0.3002}
+        & \([0.2722,\;0.3289]\) \\
+
+        \(\operatorname{Beta}(6,18)\), informativo débil
+        & \(\operatorname{Beta}(306,718)\)
+        & \num{0.2984}
+        & \num{0.2988}
+        & \([0.2712,\;0.3272]\) \\
+
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+Los tres modelos producen resultados muy próximos. Las estimaciones MAP
+se encuentran entre:
+
+\[
+0.2984
+\quad\text{y}\quad
+0.3000,
+\]
+
+mientras que las medias posteriores se sitúan entre:
+
+\[
+0.2988
+\quad\text{y}\quad
+0.3004.
+\]
+
+El prior uniforme produce un MAP de \(0.3000\), coincidente con la
+estimación frecuentista. El prior de Jeffreys genera un resultado casi
+idéntico.
+
+El prior \(\operatorname{Beta}(6,18)\) desplaza ligeramente la posterior
+hacia su media previa de \(0.25\). Sin embargo, la media posterior solo
+disminuye hasta \(0.2988\), lo que muestra que la influencia del prior es
+reducida frente al tamaño de la muestra.
+
+\subsection{Sensibilidad al prior}
+
+La Figura~\ref{fig:beta-binomial} compara las distribuciones previas y
+posteriores.
+
+\begin{figure}[H]
+    \centering
+
+    \includegraphics[
+        width=\textwidth
+    ]{
+        figura_10_modelo_beta_binomial.png
+    }
+
+    \caption{
+        Sensibilidad del modelo Beta--Binomial a la elección del prior.
+        El panel izquierdo muestra las tres distribuciones previas. El
+        panel derecho presenta las posteriores, la estimación
+        frecuentista y el intervalo de Wilson del \(95\,\%\).
+    }
+
+    \label{fig:beta-binomial}
+\end{figure}
+
+En el panel izquierdo, los priors presentan formas claramente diferentes.
+El uniforme asigna densidad constante, Jeffreys concentra más densidad
+cerca de cero y uno, y el prior informativo concentra su masa alrededor
+de valores próximos a \(0.25\).
+
+Después de observar los \(1000\) registros, las tres posteriores se
+superponen casi completamente. La evidencia contenida en los datos domina
+las diferencias entre las distribuciones previas.
+
+La amplitud de los intervalos creíbles también es muy similar. Entre el
+límite inferior más bajo y el más alto existe una diferencia de apenas:
+
+\[
+0.2724-0.2712
+=
+0.0012,
+\]
+
+equivalente a \(0.12\) puntos porcentuales. Entre los límites superiores,
+la diferencia máxima es:
+
+\[
+0.3291-0.3272
+=
+0.0019,
+\]
+
+equivalente a \(0.19\) puntos porcentuales.
+
+Estas variaciones no modifican la conclusión sustantiva: la tasa de mal
+crédito se concentra alrededor del \(30\,\%\).
+
+\begin{hallazgo}
+La inferencia sobre la tasa de mal crédito es robusta frente a los tres
+priors considerados. Con \(n=1000\), los datos dominan la actualización
+y mantienen la media posterior próxima a \(0.30\).
+\end{hallazgo}
+
+\subsection{Comparación con la inferencia frecuentista}
+
+En la Sección~\ref{sec:incertidumbre}, el intervalo de Wilson fue:
+
+\[
+\operatorname{IC}_{95\,\%,\,\mathrm{Wilson}}
+=
+[0.2724,\;0.3291].
+\]
+
+Con el prior uniforme, el intervalo creíble fue:
+
+\[
+\operatorname{ICr}_{95\,\%,\,\mathrm{Beta}(1,1)}
+=
+[0.2724,\;0.3291].
+\]
+
+Los límites coinciden numéricamente al nivel de redondeo utilizado. Esta
+coincidencia no significa que ambos intervalos sean conceptualmente
+iguales.
+
+El intervalo de Wilson se interpreta como una propiedad de un
+procedimiento repetido: en un conjunto hipotético de muestras comparables,
+aproximadamente el \(95\,\%\) de los intervalos construidos mediante
+Wilson contendría el verdadero valor de \(p\).
+
+El intervalo creíble responde a una afirmación distinta:
+
+\[
+\Pr
+\left(
+    0.2724
+    \leq
+    p
+    \leq
+    0.3291
+    \mid x
+\right)
+=
+0.95,
+\]
+
+condicionada al modelo binomial, al prior uniforme y a los datos
+observados.
+
+La similitud numérica se explica por el tamaño de la muestra y por el uso
+de un prior débil. En estas condiciones, tanto la aproximación
+frecuentista como la posterior se concentran cerca de la proporción
+muestral.
+
+\begin{table}[H]
+    \centering
+    \caption{Comparación entre la inferencia frecuentista y bayesiana
+    para la tasa de mal crédito.}
+    \label{tab:comparacion-frecuentista-bayes}
+
+    \begin{tabularx}{0.94\textwidth}{
+        @{}
+        >{\raggedright\arraybackslash}p{3.5cm}
+        >{\centering\arraybackslash}p{2.2cm}
+        >{\centering\arraybackslash}p{3.0cm}
+        X
+        @{}
+    }
+        \toprule
+        Enfoque
+        & Estimación
+        & Intervalo del \(95\,\%\)
+        & Interpretación \\
+        \midrule
+
+        Frecuentista: Wilson
+        & \(\widehat{p}=0.3000\)
+        & \([0.2724,\;0.3291]\)
+        & Cobertura del procedimiento bajo muestreo repetido. \\
+
+        Bayesiano:
+        \(\operatorname{Beta}(1,1)\)
+        & MAP \(=0.3000\)
+        & \([0.2724,\;0.3291]\)
+        & Probabilidad posterior condicionada al prior y los datos. \\
+
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+Ambos enfoques conducen a la misma conclusión aplicada: la tasa de mal
+crédito del conjunto analizado se estima cerca del \(30\,\%\), con una
+incertidumbre aproximada de tres puntos porcentuales a cada lado.
+
+\subsection{Supuestos y alcance del modelo}
+
+El modelo Beta--Binomial supone que, condicionado a \(p\), los registros
+pueden representarse como ensayos Bernoulli comparables e independientes.
+También supone una única tasa común para toda la muestra.
+
+Esta simplificación ignora posibles diferencias entre propósitos,
+duraciones, perfiles financieros o periodos de originación. El modelo
+describe la tasa agregada de la cartera, pero no sustituye la regresión
+logística utilizada para estimar probabilidades condicionales.
+
+La posterior tampoco corrige problemas de representatividad de la
+muestra. Una distribución posterior estrecha puede reflejar alta precisión
+condicionada al dataset y, al mismo tiempo, coexistir con una validez
+externa limitada.
+
+Por tanto, el intervalo creíble cuantifica la incertidumbre estadística
+sobre la tasa dentro del modelo asumido. No garantiza que la misma tasa
+sea aplicable a otra institución, país o periodo.
+
+% ============================================================
+% En el siguiente bloque se incorporarán:
+% - Regresión logística bayesiana
+% - Prior normal débilmente informativo
+% - Metropolis--Hastings multivariante
+% - Diagnósticos de la cadena
+% - Posterior del coeficiente de duración
+% ============================================================
+
 % Contenido previsto:
 % - Modelo Beta--Binomial.
 % - Prior, verosimilitud y posterior conjugada.
