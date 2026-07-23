@@ -1,6 +1,578 @@
 \section{Modelo de regresión y diagnóstico}
 \label{sec:regresion}
 
+El modelamiento se desarrolló en dos niveles. En primer lugar, se ajustó
+una regresión lineal múltiple para estudiar la estructura del monto del
+crédito y cumplir con el análisis de regresión y diagnóstico requerido
+por el curso. En segundo lugar, se ajustó una regresión logística para
+estimar la probabilidad de que un registro sea clasificado como mal
+riesgo.
+
+La regresión lineal tiene un papel auxiliar: permite examinar qué
+características contractuales y personales están asociadas con el monto
+otorgado. No constituye el modelo principal de clasificación crediticia.
+La respuesta de riesgo es binaria y se analiza posteriormente mediante
+regresión logística.
+
+\subsection{Regresión lineal múltiple para el monto del crédito}
+\label{subsec:ols}
+
+\subsubsection{Especificación del modelo}
+
+El monto original presenta una asimetría positiva pronunciada. Por este
+motivo, la variable dependiente se expresa en escala logarítmica:
+
+\[
+Y_i
+=
+\log(\variable{monto}_i).
+\]
+
+El modelo ajustado fue:
+
+\[
+\log(\variable{monto}_i)
+=
+\beta_0
++
+\beta_1\variable{duracion}_i
++
+\beta_2\variable{tasa_cuota}_i
++
+\beta_3\variable{edad}_i
++
+\varepsilon_i.
+\]
+
+La especificación incorpora tres dimensiones relevantes de la operación:
+
+\begin{itemize}
+    \item la duración contractual del crédito, expresada en meses;
+
+    \item el nivel ordinal de la cuota respecto del ingreso disponible;
+
+    \item la edad del solicitante, expresada en años.
+\end{itemize}
+
+Bajo el modelo clásico se supone:
+
+\[
+\operatorname{E}(\varepsilon_i\mid X_i)=0,
+\]
+
+\[
+\operatorname{Var}(\varepsilon_i\mid X_i)=\sigma^2,
+\]
+
+y, para la inferencia exacta en muestras finitas:
+
+\[
+\varepsilon_i
+\sim
+\mathcal{N}(0,\sigma^2).
+\]
+
+Cada coeficiente representa la variación esperada en el logaritmo del
+monto asociada con un aumento de una unidad en el predictor
+correspondiente, manteniendo constantes las demás variables incluidas.
+
+Debido a la transformación logarítmica, la variación porcentual asociada
+con un coeficiente \(\beta_j\) se obtiene mediante:
+
+\[
+100\left[\exp(\beta_j)-1\right].
+\]
+
+Esta interpretación es exacta para una variación de una unidad y no debe
+confundirse con un efecto causal.
+
+\subsubsection{Ajuste global}
+
+El modelo se estimó sobre las \(1000\) observaciones mediante mínimos
+cuadrados ordinarios. La prueba global evalúa:
+
+\[
+H_0:
+\beta_1=\beta_2=\beta_3=0,
+\]
+
+frente a:
+
+\[
+H_1:
+\text{al menos uno de los coeficientes es distinto de cero}.
+\]
+
+El resultado fue:
+
+\[
+F(3,996)=386.4,
+\qquad
+p=\num{2.04e-166}.
+\]
+
+Por tanto, se rechaza la hipótesis nula global. Las variables incluidas
+aportan información conjunta sobre el logaritmo del monto.
+
+El coeficiente de determinación fue:
+
+\[
+R^2=0.538,
+\]
+
+mientras que el coeficiente ajustado fue:
+
+\[
+R^2_{\mathrm{ajustado}}=0.537.
+\]
+
+El modelo explica aproximadamente el \(53.8\,\%\) de la variabilidad
+observada en \(\log(\variable{monto})\). El valor restante corresponde a
+características no incluidas, variabilidad individual, posibles
+relaciones no lineales y error aleatorio.
+
+\subsubsection{Coeficientes estimados}
+
+La Tabla~\ref{tab:coeficientes-ols} presenta los coeficientes clásicos.
+
+\begin{table}[H]
+    \centering
+    \caption{Coeficientes del modelo OLS para el logaritmo del monto.}
+    \label{tab:coeficientes-ols}
+
+    \begin{tabular}{
+        @{}
+        l
+        r
+        r
+        r
+        r
+        c
+        @{}
+    }
+        \toprule
+        Variable
+        & Coeficiente
+        & Error estándar
+        & Estadístico \(t\)
+        & \(p\)
+        & IC del \(95\,\%\) \\
+        \midrule
+
+        Intercepto
+        & \num{7.4860}
+        & \num{0.0742}
+        & \num{100.915}
+        & \(<0.001\)
+        & \([7.340,\;7.632]\) \\
+
+        Duración
+        & \num{0.0431}
+        & \num{0.0014}
+        & \num{30.970}
+        & \(<0.001\)
+        & \([0.040,\;0.046]\) \\
+
+        Tasa de la cuota
+        & \num{-0.2476}
+        & \num{0.0150}
+        & \num{-16.482}
+        & \(<0.001\)
+        & \([-0.277,\;-0.218]\) \\
+
+        Edad
+        & \num{0.0039}
+        & \num{0.0015}
+        & \num{2.624}
+        & \num{0.0088}
+        & \([0.001,\;0.007]\) \\
+
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Manteniendo constantes las demás variables:
+
+\begin{itemize}
+    \item un mes adicional de duración se asocia con un incremento
+    aproximado del \(4.4\,\%\) en el monto esperado;
+
+    \item un aumento de una unidad en la escala de
+    \variable{tasa_cuota} se asocia con una reducción aproximada del
+    \(21.9\,\%\) en el monto esperado;
+
+    \item un año adicional de edad se asocia con un incremento
+    aproximado del \(0.4\,\%\) en el monto esperado.
+\end{itemize}
+
+La duración presenta la asociación positiva de mayor magnitud. Esto es
+coherente con la estructura financiera de una operación: los montos
+mayores suelen distribuirse en plazos más largos para reducir la cuota
+periódica.
+
+La asociación negativa de \variable{tasa_cuota} también es
+económicamente plausible. Una mayor carga relativa de pago puede limitar
+el monto que la entidad está dispuesta a conceder. Sin embargo, la
+variable está registrada como una escala ordinal de 1 a 4 y no como un
+porcentaje exacto. Por ello, el cambio entre niveles se interpreta como
+un contraste dentro de la codificación disponible, no como una variación
+de un punto porcentual del ingreso.
+
+La edad presenta una asociación estadísticamente significativa, pero de
+magnitud reducida. Su importancia práctica es considerablemente menor
+que la de la duración y la carga de la cuota.
+
+\begin{hallazgo}
+La duración y la carga de la cuota concentran la mayor parte de la
+señal explicativa del modelo del monto. La edad aporta información
+adicional, pero su asociación condicional es pequeña.
+\end{hallazgo}
+
+\subsection{Diagnóstico de multicolinealidad}
+
+La multicolinealidad se evaluó mediante el factor de inflación de la
+varianza:
+
+\[
+\operatorname{VIF}_j
+=
+\frac{1}{1-R_j^2},
+\]
+
+donde \(R_j^2\) corresponde al coeficiente de determinación obtenido al
+regresar el predictor \(X_j\) sobre los demás predictores.
+
+Los resultados se presentan en la
+Tabla~\ref{tab:vif-ols}.
+
+\begin{table}[H]
+    \centering
+    \caption{Factores de inflación de la varianza del modelo OLS.}
+    \label{tab:vif-ols}
+
+    \begin{tabular}{lc}
+        \toprule
+        Variable & VIF \\
+        \midrule
+        Duración & \num{1.007} \\
+        Tasa de la cuota & \num{1.009} \\
+        Edad & \num{1.005} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Los valores se encuentran muy próximos a uno. No se observa una relación
+lineal fuerte entre los tres predictores del modelo y, por tanto, no hay
+evidencia de multicolinealidad relevante en esta especificación.
+
+Este resultado no contradice la correlación observada entre duración y
+monto, porque el monto es la variable dependiente. El VIF evalúa la
+relación entre los predictores: duración, tasa de la cuota y edad.
+
+\subsection{Diagnóstico gráfico de los residuos}
+
+La Figura~\ref{fig:diagnosticos-ols} presenta los cuatro gráficos
+diagnósticos requeridos.
+
+\begin{figure}[H]
+    \centering
+
+    \includegraphics[
+        width=\textwidth
+    ]{
+        figura_06_diagnosticos_modelo_ols.png
+    }
+
+    \caption{
+        Diagnósticos del modelo OLS para
+        \(\log(\variable{monto})\): residuos frente a valores ajustados,
+        gráfico Q--Q, gráfico Scale--Location y residuos estandarizados
+        frente a leverage.
+    }
+
+    \label{fig:diagnosticos-ols}
+\end{figure}
+
+El gráfico de residuos frente a valores ajustados no muestra una
+curvatura dominante, aunque se observan pequeñas variaciones locales en
+la línea suavizada. La dispersión alrededor de cero es razonablemente
+estable.
+
+El gráfico Q--Q presenta una alineación adecuada en la región central,
+con desviaciones moderadas en las colas. Esto sugiere una aproximación
+normal razonable para la mayor parte de los residuos, aunque no una
+normalidad estricta.
+
+El gráfico Scale--Location tampoco presenta una forma de embudo marcada.
+La línea suavizada muestra variaciones leves, pero no una expansión
+sistemática de la varianza a lo largo de los valores ajustados.
+
+Finalmente, el gráfico de residuos frente a leverage permite identificar
+observaciones que combinan valores poco habituales de los predictores con
+residuos elevados. La distancia de Cook máxima fue:
+
+\[
+D_{\max}=\num{0.0476}.
+\]
+
+Utilizando el umbral exploratorio:
+
+\[
+\frac{4}{n}
+=
+\frac{4}{1000}
+=
+0.004,
+\]
+
+se identificaron \(52\) observaciones por encima de dicho valor. Este
+umbral es deliberadamente sensible y funciona como una señal para
+revisión, no como una regla automática de exclusión.
+
+La distancia máxima permanece muy por debajo de uno, por lo que no se
+observa una única operación con influencia extrema sobre el ajuste.
+Las observaciones señaladas se conservaron porque corresponden a
+registros válidos y su eliminación no estaba justificada por un error
+documentado.
+
+\subsection{Normalidad de los residuos}
+
+La normalidad se evaluó formalmente mediante la prueba de Shapiro--Wilk:
+
+\[
+H_0:
+\text{los residuos siguen una distribución normal},
+\]
+
+\[
+H_1:
+\text{los residuos no siguen una distribución normal}.
+\]
+
+El resultado fue:
+
+\[
+W=\num{0.9951},
+\qquad
+p=\num{0.00275}.
+\]
+
+Al nivel de significancia de \(0.05\), se rechaza la normalidad estricta.
+Sin embargo, el valor de \(W\) es cercano a uno y el gráfico Q--Q muestra
+que las principales desviaciones se concentran en las colas.
+
+Con \(n=1000\), las pruebas de normalidad tienen capacidad para detectar
+desviaciones pequeñas que no necesariamente producen un deterioro
+práctico importante de la inferencia. Por esta razón, el resultado se
+interpreta junto con los gráficos, el tamaño de la muestra y la
+comparación posterior de los errores estándar clásicos y robustos.
+
+\subsection{Homocedasticidad: prueba de Breusch--Pagan}
+
+La constancia de la varianza se evaluó mediante:
+
+\[
+H_0:
+\operatorname{Var}(\varepsilon_i\mid X_i)=\sigma^2,
+\]
+
+\[
+H_1:
+\operatorname{Var}(\varepsilon_i\mid X_i)
+\text{ no es constante}.
+\]
+
+La prueba de Breusch--Pagan produjo:
+
+\[
+LM=\num{5.888},
+\qquad
+p=\num{0.11716},
+\]
+
+y la versión basada en \(F\):
+
+\[
+F=\num{1.967},
+\qquad
+p=\num{0.11733}.
+\]
+
+Como ambos valores \(p\) son superiores a \(0.05\), no se rechaza la
+hipótesis de varianza constante. La homocedasticidad constituye una
+aproximación razonable para esta especificación.
+
+No rechazar \(H_0\) no demuestra que la varianza sea exactamente
+constante. Indica que el test no encontró evidencia suficiente de
+heterocedasticidad con los datos y la forma funcional utilizadas.
+
+\subsection{Inferencia robusta HC3}
+
+Como comprobación de sensibilidad, se recalcularon los errores estándar
+mediante el estimador robusto HC3. Esta corrección mantiene los
+coeficientes y predicciones, pero modifica la matriz de covarianza
+utilizada en la inferencia.
+
+\begin{table}[H]
+    \centering
+    \caption{Comparación entre la inferencia clásica y la corrección
+    robusta HC3.}
+    \label{tab:hc3-ols}
+
+    \begin{tabular}{
+        @{}
+        l
+        r
+        r
+        r
+        r
+        @{}
+    }
+        \toprule
+        Variable
+        & Coeficiente
+        & EE clásico
+        & EE HC3
+        & \(p\) HC3 \\
+        \midrule
+
+        Intercepto
+        & \num{7.4860}
+        & \num{0.0742}
+        & \num{0.0748}
+        & \(<0.001\) \\
+
+        Duración
+        & \num{0.0431}
+        & \num{0.0014}
+        & \num{0.0015}
+        & \(<0.001\) \\
+
+        Tasa de la cuota
+        & \num{-0.2476}
+        & \num{0.0150}
+        & \num{0.0156}
+        & \(<0.001\) \\
+
+        Edad
+        & \num{0.0039}
+        & \num{0.0015}
+        & \num{0.0016}
+        & \num{0.0144} \\
+
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Los errores HC3 son ligeramente mayores, pero las conclusiones no
+cambian. Duración, tasa de la cuota y edad mantienen asociaciones
+estadísticamente significativas.
+
+La estabilidad frente a HC3 respalda que los resultados no dependen
+exclusivamente de la matriz de covarianza clásica. La edad continúa
+siendo significativa, aunque con menor evidencia que las otras dos
+variables.
+
+\subsection{Validación cruzada de cinco particiones}
+
+La capacidad de generalización se evaluó mediante validación cruzada
+\(k\)-fold con:
+
+\[
+k=5.
+\]
+
+La muestra se dividió aleatoriamente en cinco grupos. En cada iteración,
+cuatro particiones se utilizaron para ajustar el modelo y la restante
+para evaluarlo. La semilla utilizada fue \(\texttt{SEED}=2026\).
+
+El desempeño se midió mediante \(R^2\) y RMSE en la escala de
+\(\log(\variable{monto})\).
+
+\begin{table}[H]
+    \centering
+    \caption{Resultados de validación cruzada del modelo OLS.}
+    \label{tab:cv-ols}
+
+    \begin{tabular}{ccc}
+        \toprule
+        Partición & \(R^2\) & RMSE \\
+        \midrule
+        1 & \num{0.5321} & \num{0.5776} \\
+        2 & \num{0.4972} & \num{0.5292} \\
+        3 & \num{0.5943} & \num{0.4959} \\
+        4 & \num{0.5439} & \num{0.4861} \\
+        5 & \num{0.4901} & \num{0.5561} \\
+        \midrule
+        Media & \num{0.5315} & \num{0.5290} \\
+        Desviación estándar de \(R^2\)
+        & \num{0.0418}
+        & --- \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+El \(R^2\) medio fuera de muestra fue:
+
+\[
+\overline{R^2}_{\mathrm{CV}}
+=
+\num{0.5315}
+\pm
+\num{0.0418}.
+\]
+
+El RMSE medio fue:
+
+\[
+\operatorname{RMSE}_{\mathrm{CV}}
+=
+\num{0.5290}
+\]
+
+en la escala logarítmica.
+
+El desempeño de validación es muy próximo al obtenido con la muestra
+completa:
+
+\[
+R^2_{\mathrm{completo}}=\num{0.5379}.
+\]
+
+La diferencia entre ambos valores es reducida, lo que indica que el
+modelo mantiene una capacidad explicativa estable en observaciones no
+utilizadas durante cada ajuste. No se observa evidencia importante de
+sobreajuste dentro del esquema de validación aplicado.
+
+\subsection{Conclusión del modelo lineal}
+
+El modelo OLS proporciona una representación parsimoniosa e
+interpretable de la estructura del monto. La duración, la carga de la
+cuota y la edad explican conjuntamente cerca del \(54\,\%\) de la
+variabilidad de su logaritmo.
+
+La duración presenta la asociación positiva dominante. La tasa de la
+cuota mantiene una asociación negativa importante y la edad aporta una
+señal positiva pequeña. Los VIF cercanos a uno descartan problemas
+relevantes de multicolinealidad entre los predictores seleccionados.
+
+Los diagnósticos no muestran evidencia de heterocedasticidad y la
+inferencia robusta HC3 conserva las conclusiones. La prueba de
+Shapiro--Wilk detecta una desviación respecto de la normalidad estricta,
+pero el comportamiento gráfico, el tamaño de la muestra y la estabilidad
+de los errores robustos indican que dicha desviación no modifica de forma
+sustantiva la lectura del modelo.
+
+Finalmente, la validación cruzada muestra un desempeño cercano al ajuste
+completo. El modelo es útil para comprender la relación entre el plazo,
+la capacidad de pago aproximada, la edad y el monto otorgado.
+
+No obstante, este resultado no responde todavía qué solicitantes tienen
+mayor probabilidad de mal crédito. Esa pregunta requiere un modelo con
+respuesta binaria, desarrollado en el bloque siguiente mediante
+regresión logística.
+
+
 % 10.1 Modelo OLS auxiliar.
 % 10.2 VIF y especificación.
 % 10.3 Cuatro diagnósticos canónicos.
