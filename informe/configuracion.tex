@@ -1,0 +1,186 @@
+% ============================================================
+% Configuración general
+% ============================================================
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+
+% Tipografía académica: serif para cuerpo y sans serif para jerarquía
+\usepackage{newtxtext,newtxmath}
+\usepackage[scaled=0.92]{helvet}
+\usepackage{microtype}
+
+\usepackage[
+    top=2.55cm,
+    bottom=2.55cm,
+    left=3.00cm,
+    right=2.55cm,
+    headheight=15pt,
+    headsep=0.75cm,
+    footskip=1.20cm
+]{geometry}
+
+\usepackage{setspace}
+\setstretch{1.15}
+
+\setlength{\parindent}{1.15em}
+\setlength{\parskip}{0.18em}
+\raggedbottom
+
+% ============================================================
+% Colores: paleta original de inspiración académica británica
+% ============================================================
+
+\usepackage{xcolor}
+
+\definecolor{AcademicNavy}{HTML}{17324D}
+\definecolor{AcademicTeal}{HTML}{6F9390}
+\definecolor{AcademicSlate}{HTML}{4A5561}
+\definecolor{AcademicMist}{HTML}{EEF2F3}
+\definecolor{AcademicRule}{HTML}{C9D1D6}
+
+% ============================================================
+% Matemáticas, tablas y figuras
+% ============================================================
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{threeparttable}
+
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage[section]{placeins}
+
+\graphicspath{
+    {../resultados/figuras/}
+}
+
+\usepackage{siunitx}
+\sisetup{
+    output-decimal-marker = {,},
+    group-separator = {.},
+    group-minimum-digits = 4
+}
+
+% ============================================================
+% Títulos, listas, pies y navegación
+% ============================================================
+
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{fancyhdr}
+
+\titleformat{\section}
+    {\Large\sffamily\bfseries\color{AcademicNavy}}
+    {\thesection}
+    {0.75em}
+    {}
+
+\titleformat{\subsection}
+    {\large\sffamily\bfseries\color{AcademicSlate}}
+    {\thesubsection}
+    {0.70em}
+    {}
+
+\titleformat{\subsubsection}
+    {\normalsize\sffamily\bfseries\color{AcademicSlate}}
+    {\thesubsubsection}
+    {0.65em}
+    {}
+
+\titlespacing*{\section}{0pt}{2.2ex plus 0.7ex minus 0.3ex}{1.2ex}
+\titlespacing*{\subsection}{0pt}{1.8ex plus 0.5ex minus 0.2ex}{0.8ex}
+
+\setlist[itemize]{
+    leftmargin=1.6em,
+    itemsep=0.25em,
+    topsep=0.35em
+}
+
+\setlist[enumerate]{
+    leftmargin=1.8em,
+    itemsep=0.25em,
+    topsep=0.35em
+}
+
+\captionsetup{
+    font=small,
+    labelfont={bf,sf,color=AcademicNavy},
+    textfont=small,
+    justification=justified,
+    singlelinecheck=false,
+    skip=7pt
+}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\sffamily\small MCC002 \textperiodcentered\ Grupo 5}
+\fancyhead[R]{\sffamily\small\nouppercase{\leftmark}}
+\fancyfoot[C]{\sffamily\small\thepage}
+
+\renewcommand{\headrulewidth}{0.35pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% ============================================================
+% Bibliografía e hipervínculos
+% ============================================================
+
+\usepackage{csquotes}
+\usepackage[
+    backend=biber,
+    style=apa,
+    sorting=nyt,
+    maxcitenames=2,
+    maxbibnames=99
+]{biblatex}
+
+\usepackage[
+    colorlinks=true,
+    linkcolor=AcademicNavy,
+    citecolor=AcademicNavy,
+    urlcolor=AcademicTeal,
+    pdfborder={0 0 0}
+]{hyperref}
+
+\hypersetup{
+    pdftitle={Informe final MCC002 - Grupo 5},
+    pdfauthor={Armando Castro Chaupis, Henry Sánchez Alvarado y Alex Segura Núñez},
+    pdfsubject={Riesgo crediticio y predicción cuantitativa},
+    pdfkeywords={riesgo crediticio, regresión logística, inferencia, Bayes, German Credit Data}
+}
+
+% ============================================================
+% Entornos propios
+% ============================================================
+
+\newenvironment{hallazgo}
+{
+    \begin{quote}
+    \color{AcademicNavy}
+    \sffamily
+    \textbf{Hallazgo principal.}\;
+}
+{
+    \end{quote}
+}
+
+\newcommand{\variable}[1]{\texttt{#1}}
+\newcommand{\pvalor}{\ensuremath{p\text{-valor}}}
+\newcommand{\AUC}{\ensuremath{\mathrm{AUC}}}
+\newcommand{\OR}{\ensuremath{\mathrm{OR}}}
+
+% Control tipográfico
+\widowpenalty=10000
+\clubpenalty=10000
+\displaywidowpenalty=10000
+\emergencystretch=2em

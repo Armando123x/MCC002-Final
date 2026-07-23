@@ -1,0 +1,61 @@
+% !TeX program = pdflatex
+% !BIB program = biber
+% !TeX encoding = UTF-8 Unicode
+
+\documentclass[12pt,a4paper]{article}
+
+\input{configuracion}
+\input{datos_documento}
+
+\addbibresource{referencias.bib}
+
+\begin{document}
+
+\input{portada}
+
+\pagenumbering{roman}
+\input{resumen}
+
+\tableofcontents
+\clearpage
+
+\listoffigures
+\addcontentsline{toc}{section}{Índice de figuras}
+\clearpage
+
+\listoftables
+\addcontentsline{toc}{section}{Índice de tablas}
+\clearpage
+
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\input{secciones/01_introduccion_pregunta}
+\input{secciones/02_descripcion_dataset}
+\input{secciones/03_diccionario_variables}
+\input{secciones/04_limpieza_preprocesamiento}
+\input{secciones/05_analisis_exploratorio}
+\input{secciones/06_estadistica_descriptiva}
+\input{secciones/07_visualizaciones}
+\input{secciones/08_incertidumbre_frecuentista}
+\input{secciones/09_inferencia_frecuentista}
+\input{secciones/10_regresion_diagnostico}
+\input{secciones/11_analisis_bayesiano}
+\input{secciones/12_interpretacion_integrada}
+\input{secciones/13_limitaciones_validez}
+\input{secciones/14_conclusiones}
+\input{secciones/15_contribucion_individual}
+
+\clearpage
+\printbibliography[
+    heading=bibintoc,
+    title={Referencias}
+]
+
+\clearpage
+\appendix
+\input{anexos/A_declaracion_uso_ia}
+\input{anexos/B_resultados_complementarios}
+\input{anexos/C_reproducibilidad}
+
+\end{document}
