@@ -1,6 +1,332 @@
 \section{Limpieza y preprocesamiento}
 \label{sec:preprocesamiento}
 
+El preprocesamiento tuvo como propósito construir una base analítica
+consistente sin alterar innecesariamente la información original. El
+procedimiento se diseñó para ser reproducible, de modo que el notebook
+pueda ejecutarse desde el inicio tanto si el dataset ya se encuentra en
+el repositorio como si debe descargarse desde la fuente oficial.
+
+A diferencia de otros problemas aplicados, el conjunto de datos no
+requirió imputación, eliminación de registros ni corrección manual de
+categorías. El trabajo se concentró en verificar la integridad de la
+fuente, documentar la codificación de la respuesta, conservar la
+naturaleza estadística de los predictores y construir las variables
+derivadas necesarias para el análisis.
+
+\subsection{Configuración reproducible}
+
+Al inicio del notebook se fija una semilla global:
+
+\[
+\texttt{SEED}=2026.
+\]
+
+La semilla se utiliza en los procedimientos que dependen de generación
+seudoaleatoria, entre ellos el remuestreo bootstrap, la separación de
+datos, la validación cruzada y el sampler Metropolis--Hastings. Su uso
+permite reproducir las principales estimaciones obtenidas durante el
+análisis.
+
+El entorno utilizado corresponde a Python 3.12.10. Las versiones
+registradas durante la ejecución se presentan en la
+Tabla~\ref{tab:entorno-computacional}.
+
+\begin{table}[H]
+    \centering
+    \caption{Entorno computacional registrado por el notebook.}
+    \label{tab:entorno-computacional}
+
+    \begin{tabular}{lc}
+        \toprule
+        Componente & Versión \\
+        \midrule
+        Python & 3.12.10 \\
+        NumPy & 2.4.6 \\
+        pandas & 3.0.3 \\
+        SciPy & 1.17.1 \\
+        statsmodels & 0.14.6 \\
+        scikit-learn & 1.9.0 \\
+        seaborn & 0.13.2 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Las dependencias del proyecto se registran adicionalmente en el archivo
+\texttt{requirements.txt}. Esta separación entre código, datos,
+resultados y dependencias reduce la dependencia del entorno local desde
+el cual se ejecuta el análisis.
+
+\subsection{Localización y carga del archivo}
+
+El notebook no utiliza una ruta absoluta fija. En su lugar, busca la raíz
+del repositorio recorriendo el directorio actual y sus directorios
+superiores hasta encontrar la carpeta \texttt{.git} o el archivo
+\texttt{README.md}. A partir de esa ubicación se define la ruta:
+
+\begin{center}
+    \texttt{data/german.data}
+\end{center}
+
+Si el archivo no se encuentra localmente, el procedimiento descarga el
+paquete comprimido desde UCI, verifica que contenga
+\texttt{german.data}, lo extrae y lo almacena en la carpeta
+\texttt{data}. De esta manera, el notebook puede ejecutarse sin depender
+de una copia manual ubicada fuera del proyecto.
+
+El archivo original está separado por espacios y no contiene nombres de
+columnas. Durante la lectura se asignan los veintiún nombres definidos
+en el diccionario de variables: veinte predictores y la clase original.
+
+Después de la carga se comprueba que la matriz tenga exactamente:
+
+\[
+1000\ \text{observaciones}
+\quad \times \quad
+21\ \text{columnas}.
+\]
+
+La ejecución se detiene mediante una excepción si las dimensiones no
+coinciden con la documentación o si la variable
+\variable{clase} contiene valores diferentes de \(1\) y \(2\).
+
+\subsection{Conservación de los códigos originales}
+
+Las variables categóricas se mantienen con sus códigos originales, por
+ejemplo \texttt{A11}, \texttt{A34} o \texttt{A65}. Esta decisión conserva
+la trazabilidad con la documentación de UCI y evita modificar la
+información antes de definir el uso de cada predictor.
+
+Para facilitar la lectura de tablas y visualizaciones se generan
+etiquetas en español para cuatro variables especialmente relevantes:
+
+\begin{itemize}
+    \item propósito del crédito;
+    \item estado de la cuenta corriente;
+    \item nivel de ahorros;
+    \item historial crediticio.
+\end{itemize}
+
+Las nuevas columnas utilizan el sufijo \texttt{\_lbl}. Por ejemplo,
+\variable{proposito_lbl} contiene descripciones como ``Auto nuevo'',
+``Educación'' o ``Negocio'', mientras que
+\variable{proposito} conserva códigos como \texttt{A40}, \texttt{A46} o
+\texttt{A49}.
+
+Antes de construir cada etiqueta, el notebook compara los códigos
+observados con las claves disponibles en el diccionario correspondiente.
+La ejecución se detiene si aparece una categoría sin mapear. Esta
+validación evita que un código inesperado se convierta silenciosamente
+en un valor faltante.
+
+\subsection{Verificaciones de integridad}
+
+Las comprobaciones aplicadas a las variables originales se resumen en la
+Tabla~\ref{tab:verificaciones-integridad}.
+
+\begin{table}[H]
+    \centering
+    \caption{Verificaciones de integridad aplicadas al dataset.}
+    \label{tab:verificaciones-integridad}
+
+    \begin{tabularx}{0.94\textwidth}{
+        @{}
+        X
+        >{\centering\arraybackslash}p{2.1cm}
+        >{\centering\arraybackslash}p{1.8cm}
+        @{}
+    }
+        \toprule
+        Verificación & Criterio & Resultado \\
+        \midrule
+
+        Valores faltantes
+        & Total igual a \(0\)
+        & Cumple \\
+
+        Filas completamente duplicadas
+        & Total igual a \(0\)
+        & Cumple \\
+
+        Duración
+        & Mayor que \(0\)
+        & Cumple \\
+
+        Monto
+        & Mayor que \(0\)
+        & Cumple \\
+
+        Edad
+        & Entre 18 y 100 años
+        & Cumple \\
+
+        Tasa de la cuota
+        & Valores en \(\{1,2,3,4\}\)
+        & Cumple \\
+
+        Antigüedad en la residencia
+        & Valores en \(\{1,2,3,4\}\)
+        & Cumple \\
+
+        Número de créditos en el banco
+        & Valores en \(\{1,2,3,4\}\)
+        & Cumple \\
+
+        Número de dependientes
+        & Valores en \(\{1,2\}\)
+        & Cumple \\
+
+        Clase original
+        & Valores en \(\{1,2\}\)
+        & Cumple \\
+
+        Respuesta recodificada
+        & Valores en \(\{0,1\}\)
+        & Cumple \\
+
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+Las verificaciones no detectaron valores faltantes ni filas completamente
+duplicadas. Asimismo, las variables numéricas y ordinales se encontraron
+dentro de los rangos documentados. Por esta razón, no fue necesario
+eliminar observaciones, imputar datos ni corregir categorías.
+
+No se eliminaron valores extremos de duración o monto. Aunque algunas
+observaciones se encuentran alejadas del centro de sus distribuciones,
+corresponden a registros válidos del dataset y pueden representar
+operaciones crediticias reales. Su influencia se examina mediante
+estadística descriptiva, visualizaciones, transformaciones y
+diagnósticos de los modelos, en lugar de descartarlas automáticamente.
+
+\subsection{Recodificación de la variable respuesta}
+
+El archivo original define:
+
+\[
+\variable{clase} =
+\begin{cases}
+1, & \text{buen riesgo},\\
+2, & \text{mal riesgo}.
+\end{cases}
+\]
+
+Para el análisis se construye la respuesta binaria:
+
+\[
+Y_i=\variable{mal_credito}_i =
+\begin{cases}
+0, & \text{si } \variable{clase}_i=1,\\[3pt]
+1, & \text{si } \variable{clase}_i=2.
+\end{cases}
+\]
+
+De esta forma, el mal crédito queda definido como el evento positivo. La
+decisión es coherente con el objetivo del estudio y con la matriz de
+costos: un falso negativo representa un crédito de mal riesgo clasificado
+como bueno, es decir, el error al que la fuente asigna el mayor costo.
+
+La recodificación también facilita la interpretación de las métricas.
+El \textit{recall} de la clase positiva representa directamente la
+proporción de malos créditos detectados correctamente por el modelo.
+
+Además, se crea \variable{clase_lbl} como una variable categórica
+ordenada con dos etiquetas:
+
+\begin{center}
+    \textit{Buen riesgo}
+    \qquad y \qquad
+    \textit{Mal riesgo}.
+\end{center}
+
+Esta variable se utiliza únicamente para mejorar la lectura de tablas y
+figuras; los cálculos se realizan con \variable{mal_credito}.
+
+La recodificación produce \(700\) observaciones de buen riesgo y \(300\)
+de mal riesgo, equivalentes al \(70\,\%\) y \(30\,\%\) del conjunto,
+respectivamente. Esta distribución será considerada posteriormente al
+separar los datos y evaluar las métricas del clasificador.
+
+\subsection{Tratamiento de categorías informativas}
+
+Los códigos \texttt{A65} y \texttt{A124} requieren una consideración
+especial. El primero representa ``nivel de ahorros desconocido o sin
+cuenta'', mientras que el segundo representa ``propiedad desconocida o
+inexistente''. Ambos son códigos definidos por la fuente y no valores
+faltantes generados durante la carga.
+
+Por tanto, se mantienen como categorías válidas. Reemplazarlos por
+valores nulos eliminaría una señal potencialmente relevante del proceso
+de evaluación crediticia. Sin embargo, su interpretación es limitada,
+porque cada categoría combina dos situaciones diferentes. Por ejemplo,
+no es posible distinguir entre la ausencia de una cuenta de ahorros y la
+falta de información sobre ella.
+
+De manera similar, \variable{tasa_cuota} y
+\variable{anios_residencia} se conservan como escalas ordinales
+codificadas entre 1 y 4. Estos números representan niveles ordenados, no
+porcentajes exactos ni años observados directamente. Cuando se utilicen
+como predictores lineales, esa simplificación deberá considerarse al
+interpretar sus coeficientes.
+
+\subsection{Transformación del monto}
+
+El análisis exploratorio muestra que el monto presenta una distribución
+marcadamente asimétrica hacia la derecha. Después de comprobar que todos
+sus valores son positivos, se construye:
+
+\[
+\variable{log_monto}_i
+=
+\log\left(\variable{monto}_i\right).
+\]
+
+La transformación logarítmica reduce la influencia relativa de los
+montos más altos, comprime la escala y permite representar relaciones
+multiplicativas de una forma más cercana a la linealidad. No sustituye al
+monto original: ambas variables se conservan y se utilizan según el
+objetivo de cada análisis.
+
+La pertinencia de esta transformación se evalúa posteriormente mediante
+el histograma, el gráfico Q--Q y el ajuste por máxima verosimilitud de
+distribuciones lognormal y gamma.
+
+\subsection{Separación entre preprocesamiento y modelamiento}
+
+Las operaciones descritas hasta este punto se realizan sobre el conjunto
+completo porque corresponden a validaciones estructurales, recodificaciones
+determinísticas y creación de etiquetas.
+
+La separación entre entrenamiento y prueba no forma parte de esta etapa.
+Se introduce posteriormente, antes del ajuste de la regresión logística,
+mediante una partición estratificada de \(70\,\%\) para entrenamiento y
+\(30\,\%\) para prueba. La estratificación conserva la proporción de mal
+crédito en ambos subconjuntos.
+
+Las variables categóricas tampoco se reemplazan globalmente por códigos
+numéricos arbitrarios. En los modelos de \texttt{statsmodels} se
+incorporan mediante términos categóricos explícitos, dejando una
+categoría de referencia. De esta manera, la representación utilizada por
+cada modelo queda vinculada a su especificación y puede interpretarse de
+forma transparente.
+
+\subsection{Resultado del preprocesamiento}
+
+El resultado es una base con las \(1000\) observaciones originales, sin
+imputaciones ni exclusiones, acompañada por etiquetas legibles y tres
+variables derivadas principales:
+
+\begin{itemize}
+    \item \variable{mal_credito}, respuesta binaria;
+    \item \variable{clase_lbl}, etiqueta de presentación;
+    \item \variable{log_monto}, transformación logarítmica del monto.
+\end{itemize}
+
+Este conjunto constituye la entrada común para el análisis exploratorio,
+la inferencia frecuentista, los modelos de regresión y el análisis
+bayesiano desarrollados en las secciones siguientes.
+
 % Contenido previsto:
 % - Carga reproducible.
 % - Validación de dimensiones, tipos, faltantes y duplicados.
