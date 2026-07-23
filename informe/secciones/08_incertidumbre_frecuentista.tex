@@ -1,6 +1,397 @@
 \section{Análisis de incertidumbre frecuentista}
 \label{sec:incertidumbre}
 
+La proporción observada de malos créditos describe la composición de la
+muestra, pero no expresa por sí sola la precisión de la estimación. Para
+cuantificar esta incertidumbre se construyeron dos intervalos de confianza
+del \(95\,\%\) para la tasa de mal crédito: un intervalo analítico de
+Wilson y un intervalo bootstrap percentil.
+
+Como análisis complementario, se estimó también un intervalo basado en
+la distribución \(t\) de Student para la duración media del crédito. Esta
+segunda estimación permite distinguir la incertidumbre asociada con una
+proporción binomial de la incertidumbre correspondiente a la media de una
+variable cuantitativa.
+
+Los resultados completos se generan en el notebook y se exportan en:
+
+\begin{center}
+    \texttt{resultados/tablas/tabla\_intervalos\_confianza.csv}
+\end{center}
+
+\subsection{Proporción observada de malos créditos}
+
+Sea \(Y_i\) la variable binaria que identifica un mal crédito:
+
+\[
+Y_i =
+\begin{cases}
+1, & \text{si la observación corresponde a mal riesgo},\\
+0, & \text{si corresponde a buen riesgo}.
+\end{cases}
+\]
+
+Bajo un modelo binomial:
+
+\[
+X=\sum_{i=1}^{n}Y_i
+\sim
+\operatorname{Binomial}(n,p),
+\]
+
+donde \(p\) representa la proporción poblacional desconocida de malos
+créditos.
+
+En la muestra analizada:
+
+\[
+n=1000,
+\qquad
+x=300,
+\]
+
+por lo que la estimación puntual es:
+
+\[
+\widehat{p}
+=
+\frac{x}{n}
+=
+\frac{300}{1000}
+=
+0.300.
+\]
+
+La tasa observada de mal crédito es, por tanto, del \(30.0\,\%\).
+
+\subsection{Intervalo analítico de Wilson}
+
+Para estimar \(p\) se utilizó el intervalo de Wilson. A diferencia del
+intervalo de Wald, este procedimiento incorpora una corrección tanto en
+el centro como en el margen del intervalo y suele presentar una cobertura
+más estable para proporciones binomiales.
+
+Para un nivel de confianza \(1-\alpha\), el intervalo se define como:
+
+\[
+\operatorname{IC}_{\mathrm{Wilson}}
+=
+\frac{
+    \widehat{p}
+    +
+    \dfrac{z_{1-\alpha/2}^{2}}{2n}
+    \pm
+    z_{1-\alpha/2}
+    \sqrt{
+        \dfrac{\widehat{p}(1-\widehat{p})}{n}
+        +
+        \dfrac{z_{1-\alpha/2}^{2}}{4n^{2}}
+    }
+}{
+    1+\dfrac{z_{1-\alpha/2}^{2}}{n}
+}.
+\]
+
+Para un nivel de confianza del \(95\,\%\):
+
+\[
+\alpha=0.05,
+\qquad
+z_{1-\alpha/2}\approx 1.96.
+\]
+
+El intervalo obtenido fue:
+
+\[
+\operatorname{IC}_{95\,\%,\,\mathrm{Wilson}}
+=
+[0.2724,\;0.3291].
+\]
+
+En términos porcentuales:
+
+\[
+27.24\,\%
+\leq
+p
+\leq
+32.91\,\%.
+\]
+
+La amplitud total del intervalo es de aproximadamente \(5.67\) puntos
+porcentuales. De forma equivalente, el margen alrededor de la estimación
+central es cercano a \(2.84\) puntos porcentuales.
+
+El cálculo se implementó explícitamente en el notebook y se verificó
+mediante la función \texttt{proportion\_confint()} de
+\texttt{statsmodels}. Ambas implementaciones produjeron los mismos
+límites dentro de la tolerancia numérica utilizada.
+
+\subsection{Intervalo bootstrap percentil}
+
+Como método de remuestreo se utilizó un bootstrap no paramétrico. El
+procedimiento genera \(B=10\,000\) muestras con reemplazo, cada una de
+tamaño \(n=1000\), a partir de los registros observados.
+
+Para cada réplica \(b\) se calculó:
+
+\[
+\widehat{p}^{*(b)}
+=
+\frac{1}{n}
+\sum_{i=1}^{n}
+Y_i^{*(b)}.
+\]
+
+La colección:
+
+\[
+\widehat{p}^{*(1)},
+\widehat{p}^{*(2)},
+\ldots,
+\widehat{p}^{*(B)}
+\]
+
+aproxima la distribución muestral de la proporción. El intervalo
+percentil se construye mediante los cuantiles \(0.025\) y \(0.975\):
+
+\[
+\operatorname{IC}_{\mathrm{bootstrap}}
+=
+\left[
+    Q_{0.025}\left(\widehat{p}^{*}\right),
+    Q_{0.975}\left(\widehat{p}^{*}\right)
+\right].
+\]
+
+Con la semilla reproducible \(\texttt{SEED}=2026\), el resultado fue:
+
+\[
+\operatorname{IC}_{95\,\%,\,\mathrm{bootstrap}}
+=
+[0.2720,\;0.3290].
+\]
+
+En términos porcentuales:
+
+\[
+27.20\,\%
+\leq
+p
+\leq
+32.90\,\%.
+\]
+
+El error estándar estimado a partir de las réplicas bootstrap fue:
+
+\[
+\widehat{\operatorname{SE}}_{\mathrm{bootstrap}}
+=
+0.0145.
+\]
+
+La amplitud total del intervalo bootstrap es de \(5.70\) puntos
+porcentuales, prácticamente igual a la obtenida mediante Wilson.
+
+\subsection{Comparación de los intervalos para la proporción}
+
+La Tabla~\ref{tab:intervalos-proporcion} resume los resultados.
+
+\begin{table}[H]
+    \centering
+    \caption{Intervalos de confianza del \(95\,\%\) para la proporción
+    de malos créditos.}
+    \label{tab:intervalos-proporcion}
+
+    \begin{tabular}{
+        @{}
+        l
+        c
+        c
+        c
+        c
+        @{}
+    }
+        \toprule
+        Método
+        & Estimación
+        & Límite inferior
+        & Límite superior
+        & Amplitud \\
+        \midrule
+
+        Wilson
+        & \num{0.3000}
+        & \num{0.2724}
+        & \num{0.3291}
+        & \num{0.0567} \\
+
+        Bootstrap percentil
+        & \num{0.3000}
+        & \num{0.2720}
+        & \num{0.3290}
+        & \num{0.0570} \\
+
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Los dos procedimientos producen resultados casi idénticos. La diferencia
+entre sus límites inferiores es de solo \(0.0004\), mientras que la
+diferencia entre los límites superiores es de \(0.0001\).
+
+Esta concordancia se explica por el tamaño de la muestra y porque la
+proporción observada no se encuentra cerca de los extremos cero o uno.
+En estas condiciones, la distribución muestral de
+\(\widehat{p}\) es aproximadamente simétrica y el remuestreo reproduce
+de manera cercana la incertidumbre capturada por el intervalo analítico.
+
+\begin{hallazgo}
+La tasa de mal crédito se estima en \(30.0\,\%\), con límites cercanos a
+\(27.2\,\%\) y \(32.9\,\%\). La concordancia entre Wilson y bootstrap
+indica que la estimación es estable frente a los dos procedimientos de
+construcción considerados.
+\end{hallazgo}
+
+\subsection{Intervalo para la duración media}
+
+También se construyó un intervalo de confianza para la media poblacional
+de la duración del crédito. Sea:
+
+\[
+\overline{x}
+=
+\frac{1}{n}
+\sum_{i=1}^{n}x_i
+\]
+
+la duración media muestral y \(s\) la desviación estándar muestral. El
+intervalo basado en la distribución \(t\) de Student es:
+
+\[
+\overline{x}
+\pm
+t_{1-\alpha/2,n-1}
+\frac{s}{\sqrt{n}}.
+\]
+
+La estimación observada fue:
+
+\[
+\overline{x}
+=
+20.903\text{ meses}.
+\]
+
+El intervalo del \(95\,\%\) fue:
+
+\[
+\operatorname{IC}_{95\,\%,\,t}
+=
+[20.1547,\;21.6513]
+\text{ meses}.
+\]
+
+La amplitud total es de aproximadamente \(1.50\) meses. Este resultado
+indica que la media de la duración se estima con una precisión
+relativamente alta dentro de la población representada por la muestra.
+
+Debe distinguirse esta incertidumbre de la variabilidad entre créditos.
+El intervalo estrecho corresponde a la precisión de la media estimada;
+no significa que las duraciones individuales se encuentren próximas a
+\(20.9\) meses. Como se observó en la estadística descriptiva, los
+contratos varían entre \(4\) y \(72\) meses.
+
+\begin{table}[H]
+    \centering
+    \caption{Resumen de los intervalos de confianza construidos.}
+    \label{tab:resumen-intervalos}
+
+    \begin{tabularx}{0.94\textwidth}{
+        @{}
+        >{\raggedright\arraybackslash}p{3.2cm}
+        >{\raggedright\arraybackslash}p{3.4cm}
+        >{\centering\arraybackslash}p{2.0cm}
+        >{\centering\arraybackslash}p{2.0cm}
+        X
+        @{}
+    }
+        \toprule
+        Parámetro
+        & Método
+        & Estimación
+        & IC del \(95\,\%\)
+        & Unidad \\
+        \midrule
+
+        Proporción de mal crédito
+        & Wilson
+        & \num{0.300}
+        & \([0.2724,\;0.3291]\)
+        & Proporción \\
+
+        Proporción de mal crédito
+        & Bootstrap percentil,
+          \(B=\num{10000}\)
+        & \num{0.300}
+        & \([0.2720,\;0.3290]\)
+        & Proporción \\
+
+        Media de la duración
+        & \(t\) de Student
+        & \num{20.903}
+        & \([20.1547,\;21.6513]\)
+        & Meses \\
+
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\subsection{Interpretación frecuentista}
+
+Los intervalos no deben interpretarse como una probabilidad posterior
+sobre un parámetro fijo. Una vez calculado el intervalo, el parámetro
+poblacional se encuentra dentro o fuera de sus límites; no se asigna una
+probabilidad del \(95\,\%\) a ese evento dentro del enfoque
+frecuentista.
+
+La interpretación se refiere al procedimiento: si se extrajeran muchas
+muestras comparables y se construyera un intervalo mediante el mismo
+método en cada una, aproximadamente el \(95\,\%\) de esos intervalos
+contendría el verdadero parámetro poblacional.
+
+Esta interpretación se diferencia del intervalo creíble bayesiano que se
+presentará en la Sección~\ref{sec:bayes}. En el enfoque bayesiano, la
+incertidumbre se expresa directamente mediante una distribución
+posterior para \(p\).
+
+\subsection{Supuestos y alcance}
+
+El intervalo de Wilson se apoya en un modelo binomial y supone que las
+observaciones representan ensayos comparables e independientes. El
+bootstrap utilizado también remuestrea registros individuales, por lo que
+mantiene implícitamente una estructura de independencia entre las filas.
+
+Además, ambos métodos cuantifican la incertidumbre muestral condicionada
+a la composición del dataset. No corrigen posibles sesgos derivados del
+proceso de selección original, la antigüedad de los datos ni la falta de
+representatividad respecto de una cartera actual.
+
+Por ello, el intervalo:
+
+\[
+[27.2\,\%,\;32.9\,\%]
+\]
+
+describe la precisión de la tasa dentro de una población comparable con
+la muestra analizada. No debe interpretarse como una estimación directa
+de la tasa de incumplimiento de una entidad financiera peruana ni de una
+cartera contemporánea sin una validación externa adicional.
+
+La cercanía entre Wilson y bootstrap aporta evidencia de estabilidad
+numérica, pero no elimina las limitaciones de validez externa del
+dataset.
+
 % Contenido previsto:
 % - IC de Wilson al 95 % para la tasa de mal crédito.
 % - IC bootstrap.
