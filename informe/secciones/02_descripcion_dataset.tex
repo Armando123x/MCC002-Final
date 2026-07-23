@@ -1,6 +1,240 @@
 \section{Descripción y citación del dataset}
 \label{sec:dataset}
 
+\subsection{Fuente y propósito original}
+
+El análisis utiliza el conjunto de datos
+\textit{Statlog (German Credit Data)}, publicado en el
+UCI Machine Learning Repository y atribuido a Hans Hofmann
+\parencite{hofmann1994statlog}. El dataset fue incorporado al repositorio
+en 1994 y fue diseñado como un problema de clasificación binaria: cada
+registro representa un perfil crediticio que debe ser clasificado como
+buen o mal riesgo.
+
+El conjunto pertenece a la familia de problemas \textit{Statlog},
+desarrollada para comparar métodos estadísticos y algoritmos de
+clasificación sobre datos reales. En este caso, el objetivo consiste en
+utilizar información financiera, contractual y personal disponible al
+momento de evaluar una solicitud para distinguir entre dos clases de
+riesgo.
+
+La elección del dataset responde directamente a la consigna asignada al
+Grupo 5. Su estructura permite estudiar la tasa de mal crédito, comparar
+grupos de solicitantes, ajustar modelos multivariables y evaluar cómo
+cambia una decisión cuando se modifica el umbral de clasificación.
+
+\subsection{Estructura general}
+
+El archivo utilizado contiene \(1000\) observaciones, \(20\) variables
+predictoras y una variable de clasificación. Cada fila corresponde a un
+registro crediticio y cada columna representa una característica del
+solicitante o de la operación evaluada.
+
+La estructura general se resume en la
+Tabla~\ref{tab:resumen-dataset}.
+
+\begin{table}[H]
+    \centering
+    \caption{Características generales del conjunto de datos.}
+    \label{tab:resumen-dataset}
+
+    \begin{tabularx}{0.90\textwidth}{
+        @{}
+        >{\raggedright\arraybackslash}p{4.3cm}
+        X
+        @{}
+    }
+        \toprule
+        Característica & Descripción \\
+        \midrule
+        Nombre oficial
+            & \textit{Statlog (German Credit Data)} \\
+
+        Fuente
+            & UCI Machine Learning Repository \\
+
+        Autor o proveedor
+            & Hans Hofmann \\
+
+        Año de publicación
+            & 1994 \\
+
+        Unidad de análisis
+            & Registro de una operación o perfil crediticio \\
+
+        Número de observaciones
+            & \(1000\) \\
+
+        Variables predictoras
+            & \(20\) \\
+
+        Variable respuesta
+            & Clasificación como buen o mal riesgo crediticio \\
+
+        Tipo de tarea
+            & Clasificación binaria supervisada \\
+
+        Tipos de variables
+            & Categóricas, ordinales y numéricas \\
+
+        Valores faltantes declarados
+            & No \\
+
+        Licencia
+            & Creative Commons Attribution 4.0 International
+              (CC BY 4.0) \\
+
+        Identificador persistente
+            & DOI: \texttt{10.24432/C5NC77} \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+La documentación original distingue siete atributos registrados mediante
+valores numéricos y trece atributos cualitativos representados mediante
+códigos simbólicos. En el análisis posterior, algunas de las variables
+numéricas se tratan como ordinales codificadas, debido a que sus valores
+representan categorías ordenadas y no mediciones continuas.
+
+La descripción detallada de cada predictor, su naturaleza estadística,
+su unidad y su codificación se presenta en la
+Sección~\ref{sec:diccionario}.
+
+\subsection{Archivos disponibles y versión utilizada}
+
+El repositorio UCI distribuye dos versiones principales del dataset:
+
+\begin{itemize}
+    \item \texttt{german.data}, que conserva los códigos simbólicos y
+    categóricos del archivo original;
+
+    \item \texttt{german.data-numeric}, que transforma las categorías en
+    variables indicadoras para facilitar su uso en algoritmos que
+    requieren entradas exclusivamente numéricas.
+\end{itemize}
+
+En este trabajo se utiliza \texttt{german.data}. Esta elección permite
+conservar la semántica original de las categorías y mantener una
+separación explícita entre variables numéricas, ordinales y nominales.
+También facilita la interpretación de los coeficientes del modelo y de
+los perfiles asociados con mayor o menor riesgo.
+
+El archivo está separado por espacios y no contiene una fila de
+encabezados. Por ello, durante la carga se asignan los nombres de las
+columnas a partir de la documentación oficial \texttt{german.doc}. Una
+vez incorporados los nombres, la matriz de datos contiene \(1000\) filas
+y \(21\) columnas: veinte predictores y la clase original.
+
+\subsection{Variable de clasificación}
+
+La variable respuesta original utiliza la siguiente codificación:
+
+\[
+\texttt{clase} =
+\begin{cases}
+1, & \text{buen riesgo},\\
+2, & \text{mal riesgo}.
+\end{cases}
+\]
+
+Esta codificación se conserva al cargar el archivo, pero posteriormente
+se construye una variable binaria denominada
+\variable{mal\_credito}, en la que el evento de interés se representa
+mediante el valor uno. La transformación completa y sus implicancias
+para las métricas de clasificación se explican en la
+Sección~\ref{sec:preprocesamiento}.
+
+Es importante distinguir la etiqueta proporcionada por el dataset de un
+incumplimiento observado en un sistema financiero contemporáneo. La
+variable expresa la clasificación disponible en la fuente original; por
+tanto, se utiliza como aproximación operativa al riesgo crediticio dentro
+de este ejercicio y no como una definición universal de default.
+
+\subsection{Matriz de costos}
+
+Una característica central del dataset es la inclusión de una matriz de
+costos. La documentación establece que clasificar como buen riesgo a un
+solicitante que pertenece a la clase de mal riesgo tiene un costo cinco
+veces mayor que realizar el error contrario.
+
+La matriz original se presenta en la
+Tabla~\ref{tab:matriz-costos-original}.
+
+\begin{table}[H]
+    \centering
+    \caption{Matriz de costos asociada con la clasificación crediticia.}
+    \label{tab:matriz-costos-original}
+
+    \begin{tabular}{lcc}
+        \toprule
+        & \multicolumn{2}{c}{Clase predicha} \\
+        \cmidrule(lr){2-3}
+        Clase real & Buen riesgo & Mal riesgo \\
+        \midrule
+        Buen riesgo & \(0\) & \(1\) \\
+        Mal riesgo  & \(5\) & \(0\) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Bajo la recodificación utilizada en este trabajo, el mal crédito es la
+clase positiva. En consecuencia, aprobar como buen riesgo un caso que
+realmente pertenece a la clase de mal riesgo corresponde a un falso
+negativo y recibe un costo de \(5\). Rechazar o clasificar como riesgoso
+un caso que realmente era buen crédito corresponde a un falso positivo y
+recibe un costo de \(1\).
+
+Esta asimetría se incorpora posteriormente al seleccionar el umbral de
+decisión. No se utiliza para modificar artificialmente las etiquetas ni
+para evaluar el modelo únicamente mediante exactitud global.
+
+\subsection{Licencia, acceso y reproducibilidad}
+
+El dataset se distribuye bajo la licencia
+Creative Commons Attribution 4.0 International. Esta licencia permite
+su uso, adaptación y redistribución, siempre que se reconozca
+adecuadamente la fuente.
+
+Para garantizar la reproducibilidad, el notebook busca primero una copia
+local en:
+
+\begin{center}
+    \texttt{data/german.data}
+\end{center}
+
+Si el archivo no existe, el procedimiento descarga el paquete oficial
+desde UCI, extrae \texttt{german.data} y lo almacena en la carpeta
+\texttt{data}. Después de la carga se verifica que la matriz tenga
+exactamente \(1000\) observaciones y \(21\) columnas, y que la variable
+\variable{clase} contenga únicamente los valores \(1\) y \(2\).
+
+Este mecanismo permite ejecutar el notebook desde cero sin depender de
+una ruta absoluta del equipo local. Las comprobaciones posteriores de
+integridad, valores faltantes, duplicados, rangos y codificaciones se
+describen en la Sección~\ref{sec:preprocesamiento}.
+
+\subsection{Pertinencia y alcance del conjunto de datos}
+
+El dataset resulta adecuado para el objetivo del trabajo porque combina
+variables relacionadas con la operación crediticia, la capacidad
+financiera y algunas características personales del solicitante. Esta
+diversidad permite contrastar asociaciones marginales, construir modelos
+multivariables y analizar la relación entre desempeño predictivo y costo
+de decisión.
+
+Sin embargo, su uso requiere cautela. La fuente ofrece información
+limitada sobre el periodo de recolección, el procedimiento de muestreo,
+las reglas utilizadas para asignar la clase y la población de
+solicitantes excluidos antes de la aprobación. Tampoco debe suponerse
+que los patrones observados representan el comportamiento actual de una
+cartera peruana o de otra institución financiera.
+
+Por estas razones, el dataset se utiliza como un caso académico de
+análisis estadístico y no como una base suficiente para desplegar un
+modelo de originación de créditos. Las consecuencias de estas
+limitaciones para la validez externa, la equidad y el uso responsable se
+discuten en la Sección~\ref{sec:limitaciones}.
+
 % Contenido previsto:
 % - Statlog German Credit Data.
 % - Fuente, autor, año, DOI y licencia.
