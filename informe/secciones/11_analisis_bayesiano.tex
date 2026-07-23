@@ -614,14 +614,841 @@ Por tanto, el intervalo creíble cuantifica la incertidumbre estadística
 sobre la tasa dentro del modelo asumido. No garantiza que la misma tasa
 sea aplicable a otra institución, país o periodo.
 
-% ============================================================
-% En el siguiente bloque se incorporarán:
-% - Regresión logística bayesiana
-% - Prior normal débilmente informativo
-% - Metropolis--Hastings multivariante
-% - Diagnósticos de la cadena
-% - Posterior del coeficiente de duración
-% ============================================================
+\subsection{Regresión logística bayesiana}
+\label{subsec:logit-bayes}
+
+El modelo Beta--Binomial permitió obtener analíticamente la posterior de
+la tasa agregada de mal crédito. Sin embargo, la pregunta central del
+trabajo requiere estudiar probabilidades condicionales y determinar si
+la duración mantiene una asociación positiva después de controlar por
+las demás características.
+
+Para este propósito se formuló una versión bayesiana de la regresión
+logística utilizada en la Sección~\ref{sec:regresion}. El coeficiente de
+interés es:
+
+\[
+\beta_{\mathrm{dur}},
+\]
+
+asociado con la duración contractual del crédito.
+
+La duración fue seleccionada porque presentó evidencia consistente en
+las distintas etapas del análisis:
+
+\begin{itemize}
+    \item mostró la asociación monotónica marginal más alta con el mal
+    crédito entre las variables numéricas;
+
+    \item presentó una diferencia estadísticamente significativa entre
+    buenos y malos créditos;
+
+    \item conservó una asociación positiva dentro de la regresión
+    logística multivariable;
+
+    \item posee una interpretación directa en meses y puede relacionarse
+    con políticas de plazo.
+\end{itemize}
+
+Aunque el objetivo final es estudiar la posterior marginal de
+\(\beta_{\mathrm{dur}}\), este coeficiente no se muestrea de manera
+aislada. La incertidumbre sobre la duración depende de sus relaciones con
+los demás predictores. Por ello, el sampler aproxima la posterior conjunta
+del vector completo:
+
+\[
+\boldsymbol{\beta}
+\in
+\mathbb{R}^{24}.
+\]
+
+Después del muestreo se extrae la componente correspondiente a la
+duración.
+
+\subsection{Especificación probabilística}
+
+Para cada observación del conjunto de entrenamiento:
+
+\[
+Y_i
+\mid
+\boldsymbol{\beta}
+\sim
+\operatorname{Bernoulli}(p_i),
+\]
+
+con:
+
+\[
+p_i
+=
+\sigma
+\left(
+    \mathbf{x}_i^{\mathsf{T}}\boldsymbol{\beta}
+\right),
+\]
+
+donde:
+
+\[
+\sigma(\eta)
+=
+\frac{1}{1+\exp(-\eta)}
+\]
+
+es la función logística.
+
+Se asignó a cada coeficiente un prior normal independiente:
+
+\[
+\beta_j
+\overset{\mathrm{iid}}{\sim}
+\mathcal{N}(0,10^2),
+\qquad
+j=1,\ldots,24.
+\]
+
+La desviación estándar previa de \(10\) permite un rango amplio de valores
+en la escala logit. El prior reduce la probabilidad de coeficientes
+extremadamente grandes, pero deja que los \(700\) registros de
+entrenamiento determinen principalmente la posterior.
+
+La log-verosimilitud Bernoulli-logit puede escribirse como:
+
+\[
+\log L
+\left(
+    \boldsymbol{\beta}
+\mid
+\mathbf{y}
+\right)
+=
+\sum_{i=1}^{700}
+\left[
+    y_i\eta_i
+    -
+    \log
+    \left(
+        1+\exp(\eta_i)
+    \right)
+\right],
+\]
+
+donde:
+
+\[
+\eta_i
+=
+\mathbf{x}_i^{\mathsf{T}}\boldsymbol{\beta}.
+\]
+
+El log-prior, omitiendo constantes que no dependen de los parámetros, es:
+
+\[
+\log \pi(\boldsymbol{\beta})
+=
+-
+\frac{1}{2(10)^2}
+\sum_{j=1}^{24}
+\beta_j^2.
+\]
+
+Por tanto, la log-posterior no normalizada es:
+
+\[
+\log
+\pi
+\left(
+    \boldsymbol{\beta}
+    \mid
+    \mathbf{y}
+\right)
+=
+\sum_{i=1}^{700}
+\left[
+    y_i\eta_i
+    -
+    \log
+    \left(
+        1+\exp(\eta_i)
+    \right)
+\right]
+-
+\frac{
+    \lVert\boldsymbol{\beta}\rVert^2
+}{
+    2(10)^2
+}.
+\]
+
+Los cálculos se implementaron en escala logarítmica para evitar
+problemas numéricos al multiplicar numerosas probabilidades pequeñas. En
+el código se utilizó \texttt{numpy.logaddexp()} para evaluar de forma
+estable el término:
+
+\[
+\log\left(1+\exp(\eta_i)\right).
+\]
+
+\subsection{Necesidad de simulación MCMC}
+
+La posterior de la regresión logística es:
+
+\[
+\pi
+\left(
+    \boldsymbol{\beta}
+    \mid
+    \mathbf{y}
+\right)
+=
+\frac{
+    L
+    \left(
+        \mathbf{y}
+        \mid
+        \boldsymbol{\beta}
+    \right)
+    \pi(\boldsymbol{\beta})
+}{
+    \int
+    L
+    \left(
+        \mathbf{y}
+        \mid
+        \boldsymbol{\beta}
+    \right)
+    \pi(\boldsymbol{\beta})
+    \,d\boldsymbol{\beta}
+}.
+\]
+
+La integral del denominador se desarrolla sobre un espacio de dimensión
+\(24\) y no dispone de una solución conjugada cerrada. Su evaluación
+directa no resulta práctica.
+
+Metropolis--Hastings evita calcular esa constante de normalización. El
+algoritmo construye una cadena de Markov cuya distribución estacionaria
+es la posterior de interés. Después de alcanzar una región estable, los
+estados de la cadena permiten aproximar medias, cuantiles, probabilidades
+posteriores y transformaciones de los parámetros.
+
+\subsection{Sampler random-walk Metropolis--Hastings}
+
+El sampler fue implementado directamente en Python, sin utilizar una
+biblioteca especializada de MCMC.
+
+\subsubsection{Estado inicial}
+
+La cadena comienza en la estimación de máxima verosimilitud del modelo
+logístico frecuentista:
+
+\[
+\boldsymbol{\beta}^{(0)}
+=
+\widehat{\boldsymbol{\beta}}_{\mathrm{MLE}}.
+\]
+
+Este punto inicial se encuentra en una región de alta verosimilitud y,
+dado que el prior es débil, también en una región de elevada densidad
+posterior. Su utilización reduce la fase inicial de desplazamiento hacia
+la masa principal de la posterior.
+
+Para el coeficiente de duración:
+
+\[
+\widehat{\beta}_{\mathrm{dur,MLE}}
+=
+0.03825,
+\]
+
+con error estándar:
+
+\[
+\operatorname{EE}
+\left(
+    \widehat{\beta}_{\mathrm{dur,MLE}}
+\right)
+=
+0.01143.
+\]
+
+\subsubsection{Distribución de propuesta}
+
+En cada iteración se genera una propuesta multivariante:
+
+\[
+\boldsymbol{\beta}'
+=
+\boldsymbol{\beta}^{(t)}
++
+\frac{2.38}{\sqrt{d}}
+L\mathbf{z},
+\]
+
+donde:
+
+\[
+\mathbf{z}
+\sim
+\mathcal{N}
+\left(
+    \mathbf{0},I_d
+\right),
+\]
+
+\[
+d=24,
+\]
+
+y:
+
+\[
+LL^{\mathsf{T}}
+=
+\widehat{\Sigma}_{\mathrm{MLE}}.
+\]
+
+La matriz \(L\) se obtuvo mediante la descomposición de Cholesky de la
+matriz de covarianza estimada del modelo frecuentista.
+
+El factor de escala utilizado fue:
+
+\[
+\frac{2.38}{\sqrt{24}}
+=
+0.486.
+\]
+
+Esta construcción adapta las propuestas a la escala y correlación de los
+coeficientes:
+
+\begin{itemize}
+    \item genera desplazamientos menores en direcciones de alta
+    concentración posterior;
+
+    \item permite desplazamientos mayores en direcciones más dispersas;
+
+    \item incorpora aproximadamente las correlaciones entre
+    coeficientes.
+\end{itemize}
+
+La covarianza del MLE no se utiliza como estimación final de la posterior,
+sino como mecanismo para construir propuestas más eficientes.
+
+\subsubsection{Regla de aceptación}
+
+Debido a que la propuesta random-walk es simétrica, el cociente de
+Hastings correspondiente a la distribución de propuesta se cancela.
+
+Se calcula:
+
+\[
+\Delta
+=
+\log
+\pi
+\left(
+    \boldsymbol{\beta}'
+    \mid
+    \mathbf{y}
+\right)
+-
+\log
+\pi
+\left(
+    \boldsymbol{\beta}^{(t)}
+    \mid
+    \mathbf{y}
+\right).
+\]
+
+La propuesta se acepta con probabilidad:
+
+\[
+\alpha
+=
+\min
+\left[
+    1,
+    \exp(\Delta)
+\right].
+\]
+
+En la implementación, la regla se evalúa mediante:
+
+\[
+\log(U)<\Delta,
+\qquad
+U\sim\operatorname{Uniforme}(0,1).
+\]
+
+La comparación en escala logarítmica evita calcular explícitamente
+\(\exp(\Delta)\) cuando la diferencia entre las densidades es muy grande.
+
+Si la propuesta es aceptada:
+
+\[
+\boldsymbol{\beta}^{(t+1)}
+=
+\boldsymbol{\beta}'.
+\]
+
+Si es rechazada:
+
+\[
+\boldsymbol{\beta}^{(t+1)}
+=
+\boldsymbol{\beta}^{(t)}.
+\]
+
+La repetición del estado actual es una parte necesaria del algoritmo y no
+un error de implementación.
+
+\subsection{Configuración de la simulación}
+
+La configuración utilizada se resume en la
+Tabla~\ref{tab:configuracion-mh}.
+
+\begin{table}[H]
+    \centering
+    \caption{Configuración del sampler Metropolis--Hastings.}
+    \label{tab:configuracion-mh}
+
+    \begin{tabularx}{0.88\textwidth}{
+        @{}
+        >{\raggedright\arraybackslash}p{4.4cm}
+        X
+        @{}
+    }
+        \toprule
+        Elemento & Configuración \\
+        \midrule
+
+        Observaciones de entrenamiento
+        & \(700\) \\
+
+        Dimensión del vector
+        & \(24\) coeficientes \\
+
+        Estado inicial
+        & Estimación de máxima verosimilitud \\
+
+        Prior
+        & \(\beta_j\sim\mathcal{N}(0,10^2)\) \\
+
+        Tipo de propuesta
+        & Random-walk normal multivariante \\
+
+        Covarianza de la propuesta
+        & Basada en
+          \(\widehat{\Sigma}_{\mathrm{MLE}}\) \\
+
+        Escala
+        & \(2.38/\sqrt{24}=0.486\) \\
+
+        Iteraciones
+        & \(\num{40000}\) \\
+
+        Burn-in
+        & \(\num{8000}\) \\
+
+        Muestras retenidas
+        & \(\num{32000}\) \\
+
+        Semilla
+        & \(\texttt{SEED}=2026\) \\
+
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+Las primeras \(\num{8000}\) iteraciones se descartaron como
+\textit{burn-in}. Las \(\num{32000}\) iteraciones restantes se utilizaron
+para aproximar la posterior marginal de \(\beta_{\mathrm{dur}}\).
+
+No se aplicó \textit{thinning}. Eliminar sistemáticamente iteraciones no
+reduce la autocorrelación de la cadena original y normalmente descarta
+información. En su lugar, la dependencia se cuantificó mediante el tamaño
+efectivo de muestra.
+
+\subsection{Diagnóstico de la cadena}
+
+La tasa de aceptación observada fue:
+
+\[
+\widehat{a}
+=
+0.2568,
+\]
+
+equivalente al:
+
+\[
+25.68\,\%.
+\]
+
+Este valor se encuentra próximo a la referencia aproximada del \(23\,\%\)
+para propuestas random-walk en problemas multivariantes. La cercanía no
+demuestra por sí sola una convergencia correcta, pero indica que la escala
+de la propuesta permitió un equilibrio razonable entre desplazamientos y
+aceptaciones.
+
+El tamaño efectivo de muestra para el coeficiente de duración fue:
+
+\[
+\operatorname{ESS}
+\left(
+    \beta_{\mathrm{dur}}
+\right)
+\approx
+429.
+\]
+
+El ESS se estimó a partir de las autocorrelaciones de la cadena mediante
+una suma por pares consecutivos, interrumpida cuando el par se volvió
+negativo.
+
+Aunque se retuvieron \(\num{32000}\) valores, estos no equivalen a
+\(\num{32000}\) observaciones independientes. La cadena random-walk
+presenta autocorrelación porque cada propuesta se construye a partir del
+estado anterior.
+
+Un ESS cercano a \(429\) aporta información suficiente para estimar la
+media y los cuantiles principales de la posterior marginal, pero también
+evidencia que el sampler es menos eficiente que métodos como Hamiltonian
+Monte Carlo, MALA o propuestas adaptativas.
+
+\begin{figure}[H]
+    \centering
+
+    \includegraphics[
+        width=\textwidth
+    ]{
+        figura_11_metropolis-hastings.png
+    }
+
+    \caption{
+        Diagnóstico del sampler Metropolis--Hastings para el coeficiente
+        de duración. El panel izquierdo muestra la traza completa y el
+        final del burn-in. El panel derecho compara la posterior marginal
+        simulada con la aproximación normal basada en el MLE.
+    }
+
+    \label{fig:metropolis-hastings}
+\end{figure}
+
+La traza de la Figura~\ref{fig:metropolis-hastings} oscila alrededor de
+una región estable y no muestra una tendencia persistente. Tampoco se
+observa un cambio estructural después del burn-in. Este comportamiento es
+coherente con el uso del MLE como punto inicial.
+
+La posterior marginal simulada presenta una forma aproximadamente
+unimodal y cercana a la aproximación normal frecuentista. La similitud
+gráfica es esperable con una muestra de entrenamiento de tamaño
+considerable y un prior débilmente informativo.
+
+No obstante, el análisis utiliza una sola cadena. Por tanto, el gráfico
+de traza, la tasa de aceptación y el ESS ofrecen evidencia diagnóstica,
+pero no constituyen una demostración completa de convergencia. Una
+evaluación más rigurosa debería ejecutar varias cadenas con valores
+iniciales dispersos y calcular diagnósticos entre cadenas, como
+\(\widehat{R}\).
+
+\subsection{Posterior del coeficiente de duración}
+
+Después del burn-in, la media posterior fue:
+
+\[
+\operatorname{E}
+\left[
+    \beta_{\mathrm{dur}}
+    \mid
+    \mathbf{y}
+\right]
+=
+0.04084.
+\]
+
+La desviación estándar posterior fue:
+
+\[
+\operatorname{SD}
+\left[
+    \beta_{\mathrm{dur}}
+    \mid
+    \mathbf{y}
+\right]
+=
+0.01121.
+\]
+
+El intervalo creíble central del \(95\,\%\) fue:
+
+\[
+\operatorname{ICr}_{95\,\%}
+\left(
+    \beta_{\mathrm{dur}}
+\right)
+=
+[0.01902,\;0.06275].
+\]
+
+Todo el intervalo se encuentra por encima de cero. Además, la proporción
+de muestras positivas fue:
+
+\[
+\Pr
+\left(
+    \beta_{\mathrm{dur}}>0
+    \mid
+    \mathbf{y}
+\right)
+=
+1.0000.
+\]
+
+En la cadena retenida no se registró ninguna muestra no positiva. Este
+resultado proporciona evidencia posterior muy fuerte de una asociación
+positiva entre duración y mal riesgo, condicionada a los predictores
+incluidos, al prior y a la especificación logística.
+
+El valor \(1.0000\) debe interpretarse como una estimación de Monte Carlo
+basada en las muestras generadas. No implica una certeza matemática
+absoluta fuera del modelo.
+
+\subsection{Interpretación mediante odds ratio}
+
+El odds ratio posterior correspondiente a un mes adicional se obtiene
+mediante:
+
+\[
+\OR_{\mathrm{mes}}
+=
+\exp
+\left(
+    \beta_{\mathrm{dur}}
+\right).
+\]
+
+Al transformar la media posterior:
+
+\[
+\exp(0.04084)
+=
+1.0417.
+\]
+
+El intervalo creíble del odds ratio es:
+
+\[
+[
+\exp(0.01902),
+\exp(0.06275)
+]
+=
+[1.0192,\;1.0648].
+\]
+
+Manteniendo constantes las demás variables, cada mes adicional de
+duración se asocia con un aumento aproximado del:
+
+\[
+100(1.0417-1)
+=
+4.17\,\%
+\]
+
+en las \textit{odds} de mal crédito.
+
+Este cambio es multiplicativo. Para doce meses adicionales, el odds ratio
+posterior calculado a partir de la media es:
+
+\[
+\exp
+\left(
+    12\times0.04084
+\right)
+\approx
+1.63.
+\]
+
+Por tanto, un plazo superior en doce meses se asocia con unas
+\textit{odds} aproximadamente \(63\,\%\) mayores, manteniendo constantes
+las demás características.
+
+Esta interpretación no equivale a un incremento de \(63\) puntos
+porcentuales en la probabilidad. El cambio absoluto de probabilidad
+depende del nivel inicial de riesgo de cada solicitante.
+
+\begin{hallazgo}
+La posterior del coeficiente de duración se concentra por completo en
+valores positivos. Cada mes adicional se asocia con un aumento posterior
+medio del \(4.17\,\%\) en las odds de mal crédito, y la probabilidad
+posterior de un coeficiente positivo es aproximadamente uno.
+\end{hallazgo}
+
+\subsection{Comparación con la estimación frecuentista}
+
+La Tabla~\ref{tab:comparacion-beta-duracion} compara los dos enfoques.
+
+\begin{table}[H]
+    \centering
+    \caption{Comparación frecuentista y bayesiana del coeficiente de
+    duración.}
+    \label{tab:comparacion-beta-duracion}
+
+    \begin{tabularx}{0.94\textwidth}{
+        @{}
+        >{\raggedright\arraybackslash}p{3.3cm}
+        >{\centering\arraybackslash}p{2.2cm}
+        >{\centering\arraybackslash}p{2.2cm}
+        >{\centering\arraybackslash}p{2.8cm}
+        X
+        @{}
+    }
+        \toprule
+        Enfoque
+        & Centro
+        & Dispersión
+        & Intervalo del \(95\,\%\)
+        & OR central \\
+        \midrule
+
+        Máxima verosimilitud
+        & \num{0.03825}
+        & EE \(=\num{0.01143}\)
+        & \([0.01585,\;0.06065]\)
+        & \num{1.0390} \\
+
+        Metropolis--Hastings
+        & Media \(=\num{0.04084}\)
+        & SD \(=\num{0.01121}\)
+        & \([0.01902,\;0.06275]\)
+        & \num{1.0417} \\
+
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+La media posterior es muy cercana al estimador de máxima verosimilitud:
+
+\[
+0.04084
+\approx
+0.03825.
+\]
+
+La desviación estándar posterior también se aproxima al error estándar
+frecuentista:
+
+\[
+0.01121
+\approx
+0.01143.
+\]
+
+Los intervalos presentan amplitudes similares y ambos excluyen el valor
+cero. Esta concordancia indica que la información de los datos domina el
+prior normal débil y que la aproximación asintótica del MLE describe de
+manera razonable la posterior marginal de este coeficiente.
+
+La comparación constituye una verificación cruzada entre dos
+procedimientos, pero no convierte las interpretaciones en equivalentes.
+El intervalo frecuentista se refiere a la cobertura del procedimiento,
+mientras que el intervalo creíble expresa probabilidad posterior
+condicionada al prior y a los datos.
+
+\subsection{Evaluación crítica del sampler}
+
+El sampler implementado cumple el objetivo académico de construir desde
+cero un procedimiento Metropolis--Hastings multivariante y recuperar una
+posterior coherente con el modelo frecuentista.
+
+Entre sus fortalezas se encuentran:
+
+\begin{itemize}
+    \item la evaluación estable de la log-posterior;
+
+    \item el uso de la covarianza del MLE para adaptar la forma de la
+    propuesta;
+
+    \item una tasa de aceptación razonable;
+
+    \item la conservación explícita de los estados rechazados;
+
+    \item el cálculo del burn-in, ESS e intervalo creíble.
+\end{itemize}
+
+Sus principales limitaciones son:
+
+\begin{itemize}
+    \item se ejecutó una sola cadena;
+
+    \item la propuesta no se adapta durante la simulación;
+
+    \item el ESS es reducido respecto del número de iteraciones
+    retenidas;
+
+    \item los diagnósticos se concentran en
+    \(\beta_{\mathrm{dur}}\) y no en los 24 coeficientes;
+
+    \item no se calculó \(\widehat{R}\), porque este diagnóstico requiere
+    varias cadenas.
+\end{itemize}
+
+Para una aplicación de investigación más extensa sería recomendable
+ejecutar varias cadenas con inicializaciones dispersas y emplear un
+sampler más eficiente, como Hamiltonian Monte Carlo. Sin embargo, para
+el objetivo de demostrar el procedimiento MCMC y analizar el coeficiente
+de duración, los resultados obtenidos son consistentes y reproducibles.
+
+\subsection{Conclusión del análisis bayesiano}
+
+El modelo Beta--Binomial mostró que la tasa global de mal crédito se
+estima cerca del \(30\,\%\) y que la inferencia es estable frente a los
+priors uniforme, de Jeffreys e informativo débil.
+
+La regresión logística bayesiana profundizó el análisis de la duración.
+La posterior del coeficiente se concentra en valores positivos, con:
+
+\[
+\operatorname{E}
+\left[
+    \beta_{\mathrm{dur}}
+    \mid
+    \mathbf{y}
+\right]
+=
+0.04084,
+\]
+
+\[
+\operatorname{ICr}_{95\,\%}
+=
+[0.01902,\;0.06275],
+\]
+
+y:
+
+\[
+\Pr
+\left(
+    \beta_{\mathrm{dur}}>0
+    \mid
+    \mathbf{y}
+\right)
+\approx
+1.
+\]
+
+Los resultados coinciden sustantivamente con la estimación por máxima
+verosimilitud y confirman que la duración es el factor numérico con la
+asociación condicional más consistente en el análisis.
+
+Esta consistencia entre evidencia descriptiva, frecuentista, predictiva y
+bayesiana fortalece la interpretación, aunque continúa tratándose de una
+asociación observacional y no de un efecto causal.
 
 % Contenido previsto:
 % - Modelo Beta--Binomial.
