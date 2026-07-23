@@ -1,6 +1,385 @@
 \section{Diccionario de variables}
 \label{sec:diccionario}
 
+El conjunto de datos contiene veinte variables predictoras y una
+variable de clasificación. Para mantener la trazabilidad entre la fuente,
+el notebook y el informe, se conservan los códigos originales del archivo
+\texttt{german.data}. Los nombres en español se utilizan como
+identificadores analíticos y no alteran los valores almacenados en el
+dataset.
+
+Esta decisión resulta importante porque varias columnas no representan
+mediciones continuas, aunque estén registradas mediante números. Por
+ejemplo, \variable{tasa_cuota} y \variable{anios_residencia} utilizan
+valores enteros de 1 a 4, pero estos valores identifican niveles ordenados
+y no cantidades observadas directamente. Del mismo modo, códigos como
+\texttt{A65} y \texttt{A124} corresponden a categorías válidas y no deben
+interpretarse como valores faltantes.
+
+\subsection{Clasificación estadística de las variables}
+
+La clasificación utilizada en el notebook se resume en la
+Tabla~\ref{tab:clasificacion-variables}.
+
+\begin{table}[H]
+    \centering
+    \caption{Clasificación de las variables predictoras según su
+    naturaleza estadística.}
+    \label{tab:clasificacion-variables}
+
+    \begin{tabularx}{0.94\textwidth}{
+        @{}
+        >{\raggedright\arraybackslash}p{3.6cm}
+        >{\centering\arraybackslash}p{1.5cm}
+        X
+        @{}
+    }
+        \toprule
+        Grupo & Cantidad & Variables \\
+        \midrule
+
+        Numéricas discretas
+        & 5
+        & \variable{duracion}, \variable{monto}, \variable{edad},
+          \variable{n_creditos_banco} y
+          \variable{n_dependientes}. \\
+
+        Ordinales codificadas
+        & 2
+        & \variable{tasa_cuota} y
+          \variable{anios_residencia}. \\
+
+        Categóricas
+        & 13
+        & Estado de cuenta, historial crediticio, propósito, ahorros,
+          empleo, estatus personal, otros deudores, propiedad, otros
+          planes de pago, vivienda, trabajo, teléfono y condición de
+          trabajador extranjero. \\
+
+        Variable respuesta original
+        & 1
+        & \variable{clase}. \\
+
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+Esta clasificación responde al uso analítico de las variables. No implica
+que todas las categorías ordenadas deban introducirse como variables
+lineales en los modelos. La forma de codificación depende del propósito
+de cada análisis y se documenta en las secciones correspondientes.
+
+\subsection{Diccionario completo}
+
+La Tabla~\ref{tab:diccionario-completo} presenta el nombre utilizado en
+el notebook, el tipo estadístico y la codificación de cada atributo.
+
+{
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.14}
+
+\begin{longtable}{
+    @{}
+    >{\centering\arraybackslash}p{0.55cm}
+    >{\raggedright\arraybackslash}p{2.85cm}
+    >{\raggedright\arraybackslash}p{2.45cm}
+    >{\raggedright\arraybackslash}p{8.00cm}
+    @{}
+}
+
+\caption{Diccionario de variables del conjunto
+\textit{Statlog German Credit Data}.}
+\label{tab:diccionario-completo}
+\\
+
+\toprule
+\textbf{\#} &
+\textbf{Variable} &
+\textbf{Tipo} &
+\textbf{Descripción y codificación} \\
+\midrule
+\endfirsthead
+
+\multicolumn{4}{l}{
+    \small\itshape
+    Continuación de la Tabla~\thetable
+}
+\\
+\toprule
+\textbf{\#} &
+\textbf{Variable} &
+\textbf{Tipo} &
+\textbf{Descripción y codificación} \\
+\midrule
+\endhead
+
+\midrule
+\multicolumn{4}{r}{
+    \small\itshape Continúa en la página siguiente
+}
+\\
+\endfoot
+
+\bottomrule
+\endlastfoot
+
+1 &
+\variable{estado_cuenta} &
+Categórica ordinal &
+Estado de la cuenta corriente:
+\texttt{A11}, saldo menor que 0 DM;
+\texttt{A12}, saldo entre 0 y 200 DM;
+\texttt{A13}, saldo igual o mayor que 200 DM;
+\texttt{A14}, sin cuenta corriente. \\
+
+2 &
+\variable{duracion} &
+Numérica discreta &
+Duración contractual del crédito, expresada en meses. \\
+
+3 &
+\variable{historial_credito} &
+Categórica &
+Historial de cumplimiento:
+\texttt{A30}, sin créditos previos o todos pagados;
+\texttt{A31}, créditos de este banco pagados correctamente;
+\texttt{A32}, créditos existentes al día;
+\texttt{A33}, retrasos en pagos anteriores;
+\texttt{A34}, cuenta crítica o créditos en otras entidades. \\
+
+4 &
+\variable{proposito} &
+Categórica nominal &
+Finalidad del préstamo:
+\texttt{A40}, auto nuevo;
+\texttt{A41}, auto usado;
+\texttt{A42}, mobiliario o equipos;
+\texttt{A43}, radio o televisión;
+\texttt{A44}, electrodomésticos;
+\texttt{A45}, reparaciones;
+\texttt{A46}, educación;
+\texttt{A48}, reentrenamiento;
+\texttt{A49}, negocio;
+\texttt{A410}, otros propósitos. \\
+
+5 &
+\variable{monto} &
+Numérica discreta &
+Monto del crédito, expresado en marcos alemanes (DM). \\
+
+6 &
+\variable{ahorros} &
+Categórica ordinal &
+Nivel de ahorros o bonos:
+\texttt{A61}, menos de 100 DM;
+\texttt{A62}, entre 100 y 500 DM;
+\texttt{A63}, entre 500 y 1000 DM;
+\texttt{A64}, 1000 DM o más;
+\texttt{A65}, nivel desconocido o sin cuenta de ahorros. \\
+
+7 &
+\variable{empleo_actual} &
+Categórica ordinal &
+Antigüedad en el empleo actual:
+\texttt{A71}, desempleado;
+\texttt{A72}, menos de un año;
+\texttt{A73}, entre uno y cuatro años;
+\texttt{A74}, entre cuatro y siete años;
+\texttt{A75}, siete años o más. \\
+
+8 &
+\variable{tasa_cuota} &
+Ordinal codificada &
+Nivel de la cuota del crédito respecto del ingreso disponible. Utiliza
+valores de 1 a 4. Se interpreta como una escala ordenada de carga
+financiera, no como el porcentaje exacto observado. \\
+
+9 &
+\variable{estatus_personal_sexo} &
+Categórica sensible &
+Variable histórica que combina sexo y estado personal:
+\texttt{A91}, hombre divorciado o separado;
+\texttt{A92}, mujer divorciada, separada o casada;
+\texttt{A93}, hombre soltero;
+\texttt{A94}, hombre casado o viudo.
+No permite separar limpiamente sexo y estado civil. \\
+
+10 &
+\variable{otros_deudores} &
+Categórica nominal &
+Participación de terceros:
+\texttt{A101}, ninguno;
+\texttt{A102}, co-solicitante;
+\texttt{A103}, garante. \\
+
+11 &
+\variable{anios_residencia} &
+Ordinal codificada &
+Antigüedad en la residencia actual. Se registra mediante una escala
+ordenada con valores de 1 a 4. \\
+
+12 &
+\variable{propiedad} &
+Categórica nominal &
+Principal forma de patrimonio declarada:
+\texttt{A121}, bienes inmuebles;
+\texttt{A122}, ahorro para vivienda o seguro de vida;
+\texttt{A123}, automóvil u otra propiedad;
+\texttt{A124}, propiedad desconocida o inexistente. \\
+
+13 &
+\variable{edad} &
+Numérica discreta &
+Edad del solicitante, expresada en años. \\
+
+14 &
+\variable{otros_planes_pago} &
+Categórica nominal &
+Otros planes de pago a plazos:
+\texttt{A141}, banco;
+\texttt{A142}, tiendas;
+\texttt{A143}, ninguno. \\
+
+15 &
+\variable{vivienda} &
+Categórica nominal &
+Régimen de vivienda:
+\texttt{A151}, alquilada;
+\texttt{A152}, propia;
+\texttt{A153}, gratuita. \\
+
+16 &
+\variable{n_creditos_banco} &
+Numérica discreta &
+Número de créditos existentes del solicitante en esta entidad bancaria.
+En los datos toma valores entre 1 y 4. \\
+
+17 &
+\variable{trabajo} &
+Categórica &
+Situación ocupacional:
+\texttt{A171}, desempleado o trabajador no calificado no residente;
+\texttt{A172}, trabajador no calificado residente;
+\texttt{A173}, trabajador calificado o empleado;
+\texttt{A174}, directivo, independiente o trabajador altamente
+calificado. \\
+
+18 &
+\variable{n_dependientes} &
+Numérica discreta &
+Número de personas económicamente dependientes del solicitante. En el
+archivo toma los valores 1 o 2. \\
+
+19 &
+\variable{telefono} &
+Categórica binaria &
+Disponibilidad de teléfono registrado a nombre del solicitante:
+\texttt{A191}, no;
+\texttt{A192}, sí. \\
+
+20 &
+\variable{trabajador_extranjero} &
+Categórica binaria sensible &
+Condición de trabajador extranjero:
+\texttt{A201}, sí;
+\texttt{A202}, no. \\
+
+21 &
+\variable{clase} &
+Respuesta original &
+Clasificación proporcionada por el dataset:
+\(1\), buen riesgo;
+\(2\), mal riesgo. \\
+
+\end{longtable}
+}
+
+\subsection{Variables derivadas para el análisis}
+
+El notebook construye tres variables adicionales. Estas columnas no
+forman parte del archivo original, sino que se generan durante el
+preprocesamiento para facilitar el análisis y la presentación de los
+resultados.
+
+\begin{table}[H]
+    \centering
+    \caption{Variables derivadas utilizadas en el análisis.}
+    \label{tab:variables-derivadas}
+
+    \begin{tabularx}{0.94\textwidth}{
+        @{}
+        >{\raggedright\arraybackslash}p{3.4cm}
+        >{\raggedright\arraybackslash}p{2.5cm}
+        X
+        @{}
+    }
+        \toprule
+        Variable & Tipo & Definición \\
+        \midrule
+
+        \variable{mal_credito}
+        & Binaria
+        & Variable respuesta del análisis:
+          \(0=\) buen riesgo y \(1=\) mal riesgo. \\
+
+        \variable{clase_lbl}
+        & Categórica ordenada
+        & Etiqueta legible de la respuesta:
+          ``Buen riesgo'' o ``Mal riesgo''. Se utiliza en tablas y
+          figuras. \\
+
+        \variable{log_monto}
+        & Numérica continua
+        & Logaritmo natural del monto:
+          \(\log(\variable{monto})\). Se utiliza para reducir la
+          asimetría y estabilizar la escala en determinados modelos. \\
+
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+La respuesta binaria queda definida formalmente como:
+
+\[
+Y_i =
+\begin{cases}
+0, & \text{si } \variable{clase}_i = 1
+     \quad \text{(buen riesgo)},\\[3pt]
+1, & \text{si } \variable{clase}_i = 2
+     \quad \text{(mal riesgo)}.
+\end{cases}
+\]
+
+Esta recodificación sitúa al mal crédito como clase positiva. En
+consecuencia, el \textit{recall} mide la proporción de créditos de mal
+riesgo que el modelo consigue identificar. También permite expresar
+directamente como falso negativo el error de clasificar un mal crédito
+como buen riesgo, que es el error de mayor costo en la matriz definida
+por el dataset.
+
+\subsection{Consideraciones de interpretación}
+
+El diccionario contiene variables que requieren especial cautela. En
+particular, \variable{estatus_personal_sexo} combina dos características
+en una sola codificación histórica, mientras que
+\variable{trabajador_extranjero} representa una condición potencialmente
+sensible. Estas variables no deben interpretarse como causas del riesgo
+ni utilizarse para justificar decisiones individuales sin una revisión
+de equidad, regulación y pertinencia operacional.
+
+Asimismo, las categorías ``desconocido'' o ``sin cuenta'' no se
+reemplazan por valores faltantes. En un proceso de originación, la falta
+de una cuenta o de información documentada puede constituir una señal
+observable del perfil evaluado. Sin embargo, agrupar ambas situaciones
+en un solo código limita la interpretación: no es posible determinar si
+el solicitante carecía del producto financiero o si la información
+simplemente no estaba disponible.
+
+Estas restricciones serán consideradas al interpretar las asociaciones
+marginales y los coeficientes de los modelos, evitando atribuir un
+significado más preciso del que permite la documentación original.
+
 % Contenido previsto:
 % - Tabla completa de las 20 variables predictoras y la respuesta.
 % - Tipo, unidad, codificación original, nombre analítico y transformación.
