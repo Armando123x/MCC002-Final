@@ -1,6 +1,501 @@
 \section{Estadística descriptiva}
 \label{sec:descriptiva}
 
+La estadística descriptiva complementa el análisis exploratorio mediante
+medidas de posición, dispersión y forma. Mientras la
+Sección~\ref{sec:eda} identificó patrones generales de la cartera, esta
+sección cuantifica esos patrones y examina con mayor detalle la
+distribución del monto del crédito.
+
+Para las variables numéricas se calcularon la media, la desviación
+estándar muestral, la mediana, los cuartiles, el rango intercuartílico,
+los valores mínimo y máximo, la asimetría y la curtosis en exceso. La
+media y la desviación estándar permiten resumir el centro y la dispersión
+cuando la distribución no presenta una asimetría extrema; la mediana y
+el rango intercuartílico ofrecen una descripción más robusta ante colas
+largas y observaciones alejadas del centro.
+
+\subsection{Resumen de las variables numéricas}
+
+La Tabla~\ref{tab:descriptivos-globales} presenta los principales
+estadísticos de las cinco variables numéricas originales.
+
+\begin{table}[H]
+    \centering
+    \caption{Estadística descriptiva de las variables numéricas.}
+    \label{tab:descriptivos-globales}
+
+    \footnotesize
+    \resizebox{\textwidth}{!}{
+        \begin{tabular}{
+            @{}
+            l
+            r
+            r
+            r
+            r
+            r
+            r
+            r
+            r
+            @{}
+        }
+            \toprule
+            Variable
+            & Media
+            & Desv.\ est.
+            & Mediana
+            & Q1
+            & Q3
+            & RIC
+            & Mín.--Máx.
+            & Asimetría \\
+            \midrule
+
+            Duración
+            & \num{20.90}
+            & \num{12.06}
+            & \num{18}
+            & \num{12}
+            & \num{24}
+            & \num{12}
+            & \num{4}--\num{72}
+            & \num{1.09} \\
+
+            Monto
+            & \num{3271.26}
+            & \num{2822.74}
+            & \num{2319.50}
+            & \num{1365.50}
+            & \num{3972.25}
+            & \num{2606.75}
+            & \num{250}--\num{18424}
+            & \num{1.95} \\
+
+            Edad
+            & \num{35.55}
+            & \num{11.38}
+            & \num{33}
+            & \num{27}
+            & \num{42}
+            & \num{15}
+            & \num{19}--\num{75}
+            & \num{1.02} \\
+
+            Créditos en el banco
+            & \num{1.41}
+            & \num{0.58}
+            & \num{1}
+            & \num{1}
+            & \num{2}
+            & \num{1}
+            & \num{1}--\num{4}
+            & \num{1.27} \\
+
+            Dependientes
+            & \num{1.16}
+            & \num{0.36}
+            & \num{1}
+            & \num{1}
+            & \num{1}
+            & \num{0}
+            & \num{1}--\num{2}
+            & \num{1.91} \\
+
+            \bottomrule
+        \end{tabular}
+    }
+
+    \begin{minipage}{\textwidth}
+        \footnotesize
+        \textit{Nota.} \(Q1\) y \(Q3\) representan los cuartiles
+        primero y tercero. RIC corresponde al rango intercuartílico.
+        La duración se expresa en meses, el monto en marcos alemanes
+        (DM) y la edad en años. Todas las variables tienen
+        \(n=1000\) observaciones y no presentan valores faltantes.
+    \end{minipage}
+\end{table}
+
+La duración media es de \num{20.90} meses, mientras que su mediana es de
+\num{18} meses. La diferencia entre ambas medidas y una asimetría de
+\num{1.09} muestran que los plazos se concentran en valores relativamente
+bajos, pero incluyen una cola formada por créditos de mayor duración.
+
+La edad presenta un comportamiento similar. Su media es de
+\num{35.55} años y su mediana de \num{33} años, con una asimetría
+positiva de \num{1.02}. Aunque la mayor parte de los solicitantes se
+concentra entre \num{27} y \num{42} años, la muestra incluye personas de
+hasta \num{75} años.
+
+Las variables \variable{n_creditos_banco} y
+\variable{n_dependientes} tienen una escala reducida. En particular, el
+rango intercuartílico de \variable{n_dependientes} es cero porque los
+cuartiles primero, segundo y tercero toman el valor uno. Esto no significa
+ausencia total de variabilidad, sino una fuerte concentración en la
+categoría más frecuente.
+
+\subsection{Forma de la distribución del monto}
+
+El monto es la variable con mayor heterogeneidad. La media es de
+\num{3271.26} DM, mientras que la mediana es de \num{2319.50} DM. La
+diferencia de casi mil marcos entre ambas medidas evidencia la influencia
+de los créditos situados en la cola derecha.
+
+La variable presenta:
+
+\[
+\operatorname{asimetría}=\num{1.95},
+\qquad
+\operatorname{curtosis\ en\ exceso}=\num{4.29}.
+\]
+
+La asimetría positiva indica que la distribución se extiende hacia los
+montos elevados. La curtosis en exceso sugiere una concentración central
+y unas colas más pronunciadas que las de una distribución normal. El
+monto máximo, \num{18424} DM, es casi ocho veces la mediana de la
+muestra.
+
+Estos resultados justifican tres decisiones posteriores:
+
+\begin{enumerate}
+    \item complementar la media con la mediana y el rango
+    intercuartílico;
+
+    \item utilizar pruebas robustas o no paramétricas al comparar
+    grupos;
+
+    \item considerar el logaritmo del monto cuando se requiera reducir
+    la asimetría o modelar relaciones multiplicativas.
+\end{enumerate}
+
+La transformación logarítmica no elimina la información de los créditos
+de mayor monto. Su función es comprimir la escala y reducir la influencia
+relativa de las observaciones extremas.
+
+\subsection{Descriptivos por clase de riesgo}
+
+La Tabla~\ref{tab:descriptivos-clase} compara duración, monto y edad
+entre los grupos de buen y mal riesgo.
+
+\begin{table}[H]
+    \centering
+    \caption{Estadística descriptiva de las variables principales según
+    la clase de riesgo.}
+    \label{tab:descriptivos-clase}
+
+    \footnotesize
+    \resizebox{\textwidth}{!}{
+        \begin{tabular}{
+            @{}
+            l
+            l
+            r
+            r
+            r
+            r
+            r
+            r
+            r
+            @{}
+        }
+            \toprule
+            Variable
+            & Clase
+            & \(n\)
+            & Media
+            & Desv.\ est.
+            & Q1
+            & Mediana
+            & Q3
+            & RIC \\
+            \midrule
+
+            Duración
+            & Buen riesgo
+            & 700
+            & \num{19.21}
+            & \num{11.08}
+            & \num{12}
+            & \num{18}
+            & \num{24}
+            & \num{12} \\
+
+            Duración
+            & Mal riesgo
+            & 300
+            & \num{24.86}
+            & \num{13.28}
+            & \num{12}
+            & \num{24}
+            & \num{36}
+            & \num{24} \\
+
+            \addlinespace
+
+            Monto
+            & Buen riesgo
+            & 700
+            & \num{2985.46}
+            & \num{2401.47}
+            & \num{1375.50}
+            & \num{2244}
+            & \num{3634.75}
+            & \num{2259.25} \\
+
+            Monto
+            & Mal riesgo
+            & 300
+            & \num{3938.13}
+            & \num{3535.82}
+            & \num{1352.50}
+            & \num{2574.50}
+            & \num{5141.50}
+            & \num{3789} \\
+
+            \addlinespace
+
+            Edad
+            & Buen riesgo
+            & 700
+            & \num{36.22}
+            & \num{11.38}
+            & \num{27}
+            & \num{34}
+            & \num{42.25}
+            & \num{15.25} \\
+
+            Edad
+            & Mal riesgo
+            & 300
+            & \num{33.96}
+            & \num{11.22}
+            & \num{25}
+            & \num{31}
+            & \num{40}
+            & \num{15} \\
+
+            \bottomrule
+        \end{tabular}
+    }
+
+    \begin{minipage}{\textwidth}
+        \footnotesize
+        \textit{Nota.} Los resultados son descriptivos y no constituyen
+        por sí solos evidencia de diferencias poblacionales. Los
+        contrastes formales se presentan en la
+        Sección~\ref{sec:inferencia}.
+    \end{minipage}
+\end{table}
+
+La diferencia más visible corresponde a la duración. Los malos créditos
+tienen una mediana de \num{24} meses, frente a \num{18} meses en los
+buenos. Además, su rango intercuartílico es el doble, lo que muestra una
+mayor variabilidad de los plazos dentro del grupo de mal riesgo.
+
+El monto medio aumenta de \num{2985.46} DM a \num{3938.13} DM y la
+mediana de \num{2244} DM a \num{2574.50} DM. La diferencia entre medias
+es mayor que la diferencia entre medianas, lo que confirma que parte del
+contraste está influido por operaciones elevadas en la cola derecha.
+
+La edad muestra una diferencia más moderada. Los solicitantes de mal
+riesgo tienen una mediana de \num{31} años, frente a \num{34} años en
+los buenos créditos. El solapamiento entre grupos continúa siendo amplio,
+por lo que ninguna de estas variables debe interpretarse de manera
+aislada como una regla de clasificación.
+
+\subsection{Ajuste paramétrico del monto mediante máxima verosimilitud}
+
+Debido a que el monto es positivo y presenta una cola derecha
+pronunciada, se compararon dos familias continuas con soporte positivo:
+Lognormal y Gamma. Ambas distribuciones se ajustaron mediante máxima
+verosimilitud utilizando las funciones
+\texttt{scipy.stats.lognorm.fit()} y
+\texttt{scipy.stats.gamma.fit()}.
+
+En los dos modelos se fijó el parámetro de localización en cero:
+
+\[
+\texttt{loc}=0.
+\]
+
+Esta restricción mantiene el soporte de las distribuciones a partir de
+cero y deja dos parámetros libres en cada modelo.
+
+Para la distribución Lognormal:
+
+\[
+X \sim \operatorname{Lognormal}(\mu,\sigma),
+\]
+
+de modo que:
+
+\[
+\log(X)\sim\mathcal{N}(\mu,\sigma^2).
+\]
+
+Con \(\texttt{loc}=0\), los estimadores cerrados son:
+
+\[
+\widehat{\mu}
+=
+\frac{1}{n}
+\sum_{i=1}^{n}\log(x_i),
+\]
+
+\[
+\widehat{\sigma}
+=
+\sqrt{
+    \frac{1}{n}
+    \sum_{i=1}^{n}
+    \left[
+        \log(x_i)-\widehat{\mu}
+    \right]^2
+}.
+\]
+
+La estimación obtenida fue:
+
+\[
+\widehat{\mu}=\num{7.788691},
+\qquad
+\widehat{\sigma}=\num{0.776086}.
+\]
+
+Los valores coinciden, hasta la precisión numérica, con los parámetros
+devueltos por SciPy. Esta comprobación sirve como verificación
+independiente de la implementación.
+
+Para la distribución Gamma se utilizó la parametrización forma--escala:
+
+\[
+X\sim\operatorname{Gamma}(k,\theta),
+\]
+
+con estimaciones:
+
+\[
+\widehat{k}=\num{1.7921},
+\qquad
+\widehat{\theta}=\num{1825.3962}.
+\]
+
+\subsection{Comparación mediante log-verosimilitud y AIC}
+
+Los modelos se compararon mediante la log-verosimilitud maximizada y el
+criterio de información de Akaike:
+
+\[
+\operatorname{AIC}
+=
+2k-2\ell(\widehat{\theta}),
+\]
+
+donde \(k\) es el número de parámetros libres y
+\(\ell(\widehat{\theta})\) la log-verosimilitud evaluada en los
+estimadores de máxima verosimilitud. En ambos modelos se utilizó
+\(k=2\), porque el parámetro de localización se mantuvo fijo.
+
+\begin{table}[H]
+    \centering
+    \caption{Comparación de los ajustes Lognormal y Gamma para el monto
+    del crédito.}
+    \label{tab:comparacion-mle}
+
+    \begin{tabular}{
+        @{}
+        l
+        l
+        r
+        l
+        r
+        r
+        r
+        @{}
+    }
+        \toprule
+        Distribución
+        & Parámetro 1
+        & Valor
+        & Parámetro 2
+        & Valor
+        & Log-verosimilitud
+        & AIC \\
+        \midrule
+
+        Lognormal
+        & \(\mu\)
+        & \num{7.7887}
+        & \(\sigma\)
+        & \num{0.7761}
+        & \num{-8954.1375}
+        & \num{17912.2751} \\
+
+        Gamma
+        & \(k\)
+        & \num{1.7921}
+        & \(\theta\)
+        & \num{1825.3962}
+        & \num{-9007.2152}
+        & \num{18018.4305} \\
+
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+La distribución Lognormal presenta una log-verosimilitud mayor y un AIC
+menor. La diferencia es:
+
+\[
+\Delta\operatorname{AIC}
+=
+\num{18018.4305}
+-
+\num{17912.2751}
+=
+\num{106.1554}.
+\]
+
+Dentro de las dos familias evaluadas, esta diferencia favorece de manera
+clara al modelo Lognormal. El resultado no demuestra que la Lognormal sea
+la distribución verdadera del monto ni que proporcione un ajuste
+perfecto. El AIC permite realizar una comparación relativa entre los
+modelos candidatos, pero no constituye una prueba absoluta de bondad de
+ajuste.
+
+La evidencia gráfica complementaria muestra que los cuantiles de
+\(\log(\variable{monto})\) siguen aproximadamente una línea recta en la
+parte central, aunque presentan desviaciones en las colas. En
+consecuencia, la Lognormal ofrece una aproximación útil para describir la
+forma general de la distribución, pero conserva limitaciones en los
+valores extremos.
+
+\begin{hallazgo}
+Entre las distribuciones comparadas, la Lognormal describe mejor el
+monto del crédito. Este resultado respalda el uso de
+\variable{log_monto} para reducir la asimetría, pero no sustituye los
+diagnósticos específicos de los modelos posteriores.
+\end{hallazgo}
+
+\subsection{Implicancias para los análisis posteriores}
+
+La transformación logarítmica se empleará cuando resulte conveniente
+para reducir la escala de los montos elevados y representar relaciones
+proporcionales. En el modelo OLS, su utilidad deberá evaluarse mediante
+el comportamiento de los residuos, la homocedasticidad y la validación
+cruzada.
+
+En la regresión logística, la transformación no se utiliza porque los
+predictores deban seguir una distribución normal. El modelo logístico no
+exige normalidad marginal de las variables explicativas. Su incorporación
+responde a una decisión sobre la forma funcional de la relación entre el
+monto y el logit de la probabilidad de mal crédito.
+
+Finalmente, la asimetría observada justifica que la comparación del monto
+entre buenos y malos créditos no se limite a una prueba sobre medias. En
+la Sección~\ref{sec:inferencia} se complementará la prueba de Welch con
+un contraste de Mann--Whitney basado en rangos.
+
 % Contenido previsto:
 % - Resumen global y por clase.
 % - Media, mediana, desviación, cuartiles, IQR, asimetría y curtosis.
