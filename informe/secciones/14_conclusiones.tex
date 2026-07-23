@@ -1,6 +1,335 @@
 \section{Conclusiones}
 \label{sec:conclusiones}
 
+El trabajo integró análisis exploratorio, inferencia frecuentista,
+regresión, evaluación predictiva, costos asimétricos e inferencia
+bayesiana para estudiar los factores asociados con la clasificación de
+mal riesgo crediticio en el conjunto
+\textit{Statlog German Credit Data}.
+
+La pregunta central fue determinar qué factores explican, en un sentido
+estadístico y predictivo, la probabilidad de que un solicitante sea
+clasificado como mal riesgo. Los resultados permiten formular las
+siguientes conclusiones.
+
+\subsection{Conclusiones principales}
+
+\begin{enumerate}
+
+    \item \textbf{La tasa global de mal crédito se estima con precisión
+    alrededor del \(30\,\%\).}
+
+    De las \(1000\) observaciones, \(300\) corresponden a mal riesgo. El
+    intervalo de Wilson del \(95\,\%\) fue:
+
+    \[
+    [0.2724,\;0.3291],
+    \]
+
+    mientras que el intervalo bootstrap percentil fue:
+
+    \[
+    [0.2720,\;0.3290].
+    \]
+
+    La cercanía entre ambos procedimientos muestra que la estimación de
+    la tasa es estable frente a los métodos frecuentistas utilizados.
+
+    El modelo Beta--Binomial produjo resultados prácticamente
+    coincidentes. Bajo el prior uniforme, la estimación MAP fue
+    \(0.3000\) y el intervalo creíble del \(95\,\%\) fue
+    \([0.2724,\;0.3291]\). La sensibilidad frente a los priors uniforme,
+    de Jeffreys e informativo débil fue mínima.
+
+    \item \textbf{El propósito del préstamo está asociado con la clase de
+    riesgo, aunque la magnitud de la relación es pequeña.}
+
+    La prueba de independencia produjo:
+
+    \[
+    \chi^2(9)=33.356,
+    \qquad
+    p=0.00012.
+    \]
+
+    Sin embargo, la V de Cramér fue:
+
+    \[
+    V=0.183.
+    \]
+
+    Por tanto, el propósito aporta información para segmentar la cartera,
+    pero no constituye una variable suficiente para clasificar
+    individualmente a un solicitante. Las tasas extremas de las categorías
+    con pocos registros deben interpretarse con especial cautela.
+
+    \item \textbf{La duración es el factor numérico más consistente
+    asociado con el mal riesgo.}
+
+    Los créditos de mal riesgo presentan una duración media aproximadamente
+    \(5.65\) meses mayor que los buenos créditos. La prueba de Welch
+    confirmó la diferencia y la d de Cohen fue:
+
+    \[
+    d=0.480.
+    \]
+
+    En la regresión logística, cada mes adicional se asoció con un aumento
+    aproximado del \(3.9\,\%\) en las \textit{odds} de mal crédito:
+
+    \[
+    \mathrm{OR}=1.0390,
+    \qquad
+    p=0.0008.
+    \]
+
+    El análisis mediante Metropolis--Hastings confirmó esta asociación.
+    La media posterior del coeficiente fue:
+
+    \[
+    \operatorname{E}
+    \left[
+        \beta_{\mathrm{dur}}
+        \mid
+        \mathrm{datos}
+    \right]
+    =
+    0.04084,
+    \]
+
+    con intervalo creíble:
+
+    \[
+    [0.01902,\;0.06275],
+    \]
+
+    y:
+
+    \[
+    \Pr
+    \left(
+        \beta_{\mathrm{dur}}>0
+        \mid
+        \mathrm{datos}
+    \right)
+    \approx
+    1.
+    \]
+
+    La consistencia entre la evidencia descriptiva, frecuentista,
+    multivariable y bayesiana convierte a la duración en el resultado
+    numérico más sólido del estudio.
+
+    \item \textbf{El monto presenta una asociación marginal con el riesgo,
+    pero no conserva evidencia condicional.}
+
+    Los malos créditos presentan montos generalmente mayores. La prueba
+    de Mann--Whitney detectó una diferencia estadísticamente significativa:
+
+    \[
+    U=116\,520,
+    \qquad
+    p=0.00592.
+    \]
+
+    No obstante, el tamaño de efecto fue pequeño:
+
+    \[
+    r_{\mathrm{rb}}=0.110.
+    \]
+
+    En el modelo logístico multivariable:
+
+    \[
+    \mathrm{OR}_{\log(\mathrm{monto})}
+    =
+    1.0658,
+    \qquad
+    p=0.7238.
+    \]
+
+    Por tanto, el monto no aporta evidencia de una asociación independiente
+    después de controlar por duración, liquidez, historial, ahorros,
+    vivienda y carga de la cuota. Parte de su señal marginal está
+    compartida con la duración, cuya correlación de Spearman con el monto
+    fue aproximadamente \(0.62\).
+
+    \item \textbf{Las condiciones de liquidez y estabilidad financiera
+    complementan la información aportada por la duración.}
+
+    El estado de la cuenta corriente, el nivel de ahorros, determinadas
+    categorías del historial crediticio, la vivienda y la carga de la
+    cuota conservaron asociaciones relevantes dentro del modelo
+    logístico.
+
+    En particular, una unidad adicional en la escala de carga de la cuota
+    se asoció con un aumento aproximado del \(22.8\,\%\) en las
+    \textit{odds} de mal crédito:
+
+    \[
+    \mathrm{OR}=1.2283.
+    \]
+
+    Los niveles elevados de ahorro y la vivienda propia mostraron menores
+    \textit{odds} respecto de sus categorías de referencia. Estas
+    relaciones sugieren que la evaluación del riesgo debe considerar el
+    perfil financiero completo y no una característica aislada.
+
+    \item \textbf{El modelo logístico muestra una capacidad
+    discriminativa estable, aunque no perfecta.}
+
+    La regresión logística alcanzó:
+
+    \[
+    \operatorname{AUC}_{\mathrm{test}}
+    =
+    0.7740,
+    \]
+
+    mientras que la validación cruzada estratificada produjo:
+
+    \[
+    \overline{\operatorname{AUC}}_{\mathrm{CV}}
+    =
+    0.7685
+    \pm
+    0.0221.
+    \]
+
+    La proximidad entre ambos resultados indica estabilidad entre
+    particiones y ausencia de una brecha importante de sobreajuste bajo
+    el diseño aplicado.
+
+    Sin embargo, una AUC cercana a \(0.77\) implica que todavía existe un
+    solapamiento relevante entre buenos y malos créditos. El modelo mejora
+    el ordenamiento del riesgo, pero no permite una separación completa
+    de las clases.
+
+    \item \textbf{La elección del umbral modifica de manera sustancial
+    la utilidad operativa del modelo.}
+
+    Con el umbral convencional de \(0.50\), el modelo obtiene una exactitud
+    del \(74.0\,\%\), pero identifica únicamente el \(46.7\,\%\) de los
+    malos créditos. La matriz de confusión contiene \(48\) falsos
+    negativos.
+
+    Bajo la matriz de costos \(5:1\), el umbral teórico es:
+
+    \[
+    t^{*}
+    =
+    \frac{1}{6}
+    \approx
+    0.1667.
+    \]
+
+    Con este punto de corte, el recall aumenta al \(88.9\,\%\) y los
+    falsos negativos disminuyen de \(48\) a \(10\). Como contrapartida,
+    aumentan los falsos positivos y la exactitud disminuye al
+    \(60.7\,\%\).
+
+    El costo total observado se reduce de:
+
+    \[
+    270
+    \quad\text{a}\quad
+    158,
+    \]
+
+    equivalente a una reducción aproximada del:
+
+    \[
+    41.5\,\%.
+    \]
+
+    Este resultado demuestra que la exactitud no debe ser el único criterio
+    para evaluar un modelo de riesgo. La política de decisión debe
+    relacionarse explícitamente con el costo desigual de los errores.
+
+\end{enumerate}
+
+\subsection{Respuesta final a la pregunta de investigación{Respuesta final a la pregunta de investigación}
+
+La probabilidad de que un solicitante sea clasificado como mal riesgo se
+asocia principalmente con una combinación de plazos más prolongados,
+mayor carga de la cuota y señales menos favorables de liquidez o
+estabilidad financiera.
+
+La duración es el factor numérico dominante y mantiene su asociación en
+todas las etapas del análisis. El estado de la cuenta corriente, los
+ahorros, el historial crediticio y la vivienda aportan información
+condicional adicional. En cambio, el monto y la edad muestran diferencias
+marginales, pero no conservan evidencia estadística dentro de la
+especificación multivariable final.
+
+El propósito del préstamo está asociado globalmente con la clase de
+riesgo, aunque su magnitud es pequeña y su utilidad principal corresponde
+a la segmentación de la cartera.
+
+En consecuencia, el riesgo no debe evaluarse mediante una regla basada en
+una sola variable. La información relevante surge de la combinación del
+perfil financiero, las condiciones contractuales y los antecedentes del
+solicitante.
+
+\subsection{Recomendaciones}
+
+A partir de los resultados y limitaciones identificados, se plantean las
+siguientes recomendaciones:
+
+\begin{enumerate}
+
+    \item Utilizar el modelo como una herramienta de apoyo a la decisión
+    y no como un mecanismo autónomo de aprobación o rechazo.
+
+    \item Evaluar cuidadosamente las operaciones de larga duración y
+    elevada carga de cuota, considerando alternativas como reducción del
+    plazo, ajuste del monto, garantías adicionales o revisión manual.
+
+    \item No utilizar el monto de forma aislada como indicador de mal
+    riesgo, debido a que su asociación desaparece después de controlar
+    por otros factores.
+
+    \item Estimar los costos reales de falsos negativos y falsos positivos
+    antes de establecer un umbral operativo. La relación \(5:1\) es útil
+    para el ejercicio académico, pero no sustituye una evaluación
+    económica institucional.
+
+    \item Incorporar una evaluación formal de calibración mediante curvas
+    de confiabilidad, puntuación de Brier, intercepto y pendiente de
+    calibración.
+
+    \item Validar el modelo con datos recientes, temporales y externos
+    antes de considerar su aplicación en otra institución o contexto
+    geográfico.
+
+    \item Realizar una auditoría de equidad por edad, sexo, condición de
+    trabajador extranjero y otros grupos relevantes antes de utilizar
+    variables sensibles o sus posibles proxies.
+
+    \item Para profundizar el análisis bayesiano, ejecutar múltiples
+    cadenas, calcular \(\widehat{R}\), evaluar todos los coeficientes y
+    comparar Metropolis--Hastings con samplers más eficientes.
+
+\end{enumerate}
+
+\subsection{Cierre}
+
+El principal aporte del trabajo es demostrar un flujo estadístico
+reproducible que conecta descripción, incertidumbre, inferencia,
+modelamiento, validación y decisión.
+
+La coincidencia sustantiva entre los resultados frecuentistas y
+bayesianos fortalece la evidencia sobre la duración y la tasa global de
+mal crédito. Al mismo tiempo, la comparación de umbrales muestra que el
+valor de un modelo no depende únicamente de su capacidad predictiva, sino
+también de la forma en que sus probabilidades se convierten en decisiones.
+
+Las conclusiones son válidas para el conjunto analizado y bajo los
+supuestos documentados. No deben interpretarse como relaciones causales
+ni trasladarse directamente a una cartera contemporánea sin
+recalibración, validación externa, estimación de costos y revisión de
+equidad.
+
 % Contenido previsto:
 % - Síntesis de hallazgos.
 % - Desempeño predictivo y límites.
