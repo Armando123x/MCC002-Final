@@ -1,6 +1,369 @@
 \section{Análisis exploratorio}
 \label{sec:eda}
 
+El análisis exploratorio se realizó sobre las \(1000\) observaciones del
+dataset antes de ajustar modelos predictivos. Su finalidad fue reconocer
+la estructura de la cartera, identificar distribuciones asimétricas,
+examinar posibles diferencias entre buenos y malos créditos y formular
+hipótesis que posteriormente pudieran evaluarse mediante inferencia
+estadística y regresión.
+
+En esta etapa, los resultados se interpretan como asociaciones
+marginales. Una diferencia observada entre grupos no implica que la
+variable mantenga el mismo efecto cuando se consideran simultáneamente
+otras características del solicitante y de la operación. Tampoco permite
+establecer relaciones causales.
+
+Las visualizaciones que respaldan esta lectura se presentan en la
+Sección~\ref{sec:visualizaciones}. La estadística descriptiva completa,
+incluidos los estadísticos de posición, dispersión, asimetría y curtosis,
+se desarrolla en la Sección~\ref{sec:descriptiva}.
+
+\subsection{Distribución de la variable respuesta}
+
+La muestra contiene \(700\) operaciones clasificadas como buen riesgo y
+\(300\) como mal riesgo. En términos relativos, la tasa observada de mal
+crédito es:
+
+\[
+\widehat{p}
+=
+\frac{300}{1000}
+=
+0.300.
+\]
+
+Por tanto, la clase mayoritaria representa el \(70\,\%\) de la muestra y
+la clase de interés el \(30\,\%\). Se trata de un desbalance moderado,
+pero suficiente para que la exactitud global pueda ofrecer una impresión
+incompleta del desempeño predictivo.
+
+Por ejemplo, una regla trivial que clasificara todos los registros como
+buen riesgo alcanzaría una exactitud del \(70\,\%\), aunque no
+identificaría ningún caso de mal crédito. Esta observación justifica que
+la evaluación posterior incluya \textit{recall}, precisión, matrices de
+confusión, ROC--AUC y costos de clasificación, en lugar de utilizar
+únicamente el \textit{accuracy}.
+
+\begin{hallazgo}
+La clase positiva no es mayoritaria. En consecuencia, el desempeño del
+modelo debe evaluarse por su capacidad para identificar malos créditos y
+por el costo de los errores, no solo por el porcentaje total de
+clasificaciones correctas.
+\end{hallazgo}
+
+\subsection{Propósito del préstamo}
+
+La tasa global de mal crédito no se distribuye de manera uniforme entre
+los propósitos declarados. La categoría Educación presenta la mayor tasa
+entre los grupos con tamaño moderado, con \(22\) malos créditos de
+\(50\) observaciones, equivalente al \(44.0\,\%\). Le siguen Auto nuevo,
+con \(38.0\,\%\), y Negocio, con \(35.1\,\%\).
+
+En el extremo inferior aparecen Radio/TV, con una tasa de
+\(22.1\,\%\), Auto usado, con \(16.5\,\%\), y Reentrenamiento, con
+\(11.1\,\%\). La diferencia entre Educación y la tasa global es de
+\(14.0\) puntos porcentuales, mientras que Auto usado se sitúa
+\(13.5\) puntos porcentuales por debajo del promedio de la cartera.
+
+Sin embargo, la comparación requiere considerar el tamaño de cada
+categoría. Otros, Reparaciones, Electrodomésticos y Reentrenamiento
+contienen menos de treinta observaciones. En estos grupos, una variación
+de pocos casos produce cambios importantes en la tasa calculada.
+
+La Tabla~\ref{tab:eda-proposito} presenta los resultados exploratorios
+principales.
+
+\begin{table}[H]
+    \centering
+    \caption{Tasa observada de mal crédito según el propósito del
+    préstamo.}
+    \label{tab:eda-proposito}
+
+    \begin{tabularx}{0.92\textwidth}{
+        @{}
+        X
+        >{\centering\arraybackslash}p{1.5cm}
+        >{\centering\arraybackslash}p{1.5cm}
+        >{\centering\arraybackslash}p{2.4cm}
+        >{\centering\arraybackslash}p{2.5cm}
+        @{}
+    }
+        \toprule
+        Propósito
+        & Total
+        & Malos
+        & Tasa de mal crédito
+        & Diferencia frente al global \\
+        \midrule
+
+        Educación
+        & 50
+        & 22
+        & \(44.0\,\%\)
+        & \(+14.0\) pp \\
+
+        Otros
+        & 12
+        & 5
+        & \(41.7\,\%\)
+        & \(+11.7\) pp \\
+
+        Auto nuevo
+        & 234
+        & 89
+        & \(38.0\,\%\)
+        & \(+8.0\) pp \\
+
+        Reparaciones
+        & 22
+        & 8
+        & \(36.4\,\%\)
+        & \(+6.4\) pp \\
+
+        Negocio
+        & 97
+        & 34
+        & \(35.1\,\%\)
+        & \(+5.1\) pp \\
+
+        Electrodomésticos
+        & 12
+        & 4
+        & \(33.3\,\%\)
+        & \(+3.3\) pp \\
+
+        Mobiliario/equipos
+        & 181
+        & 58
+        & \(32.0\,\%\)
+        & \(+2.0\) pp \\
+
+        Radio/TV
+        & 280
+        & 62
+        & \(22.1\,\%\)
+        & \(-7.9\) pp \\
+
+        Auto usado
+        & 103
+        & 17
+        & \(16.5\,\%\)
+        & \(-13.5\) pp \\
+
+        Reentrenamiento
+        & 9
+        & 1
+        & \(11.1\,\%\)
+        & \(-18.9\) pp \\
+
+        \bottomrule
+    \end{tabularx}
+
+    \begin{minipage}{0.92\textwidth}
+        \footnotesize
+        \textit{Nota.} La tasa global de mal crédito es
+        \(30.0\,\%\). Las categorías Otros, Reparaciones,
+        Electrodomésticos y Reentrenamiento tienen menos de
+        \(30\) observaciones; sus tasas deben interpretarse con mayor
+        cautela.
+    \end{minipage}
+\end{table}
+
+Estas diferencias sugieren una asociación entre el propósito del
+préstamo y la clasificación de riesgo. No obstante, la evidencia
+exploratoria no permite concluir todavía que la asociación sea
+estadísticamente significativa. La prueba correspondiente se presenta
+en la Sección~\ref{sec:inferencia}.
+
+\subsection{Duración del crédito}
+
+La duración muestra uno de los contrastes exploratorios más claros entre
+las dos clases. En los buenos créditos, la mediana es de \(18\) meses y
+la media de \(19.21\) meses. En los malos créditos, la mediana aumenta a
+\(24\) meses y la media a \(24.86\) meses.
+
+También cambia la dispersión. El rango intercuartílico es de \(12\)
+meses entre los buenos créditos y de \(24\) meses entre los malos. Por
+tanto, el grupo de mal riesgo no solo presenta contratos más prolongados,
+sino también una mayor heterogeneidad en sus plazos.
+
+Desde una perspectiva de riesgo, una duración mayor amplía el horizonte
+durante el cual pueden cambiar los ingresos del solicitante, sus gastos,
+el entorno económico o su capacidad de pago. Sin embargo, esta lectura
+es una interpretación financiera plausible y no una relación causal
+demostrada por los datos.
+
+\subsection{Monto del crédito}
+
+El monto también presenta valores superiores entre los casos de mal
+riesgo. La mediana es de \(2244\) DM para los buenos créditos y de
+\(2574.5\) DM para los malos. Las medias son \(2985.46\) DM y
+\(3938.13\) DM, respectivamente.
+
+La diferencia entre medias es mayor que la diferencia entre medianas,
+debido a la fuerte asimetría de la distribución y a la presencia de
+operaciones de importe elevado. Además, el rango intercuartílico del
+monto es de \(2259.25\) DM para los buenos créditos y de \(3789\) DM
+para los malos.
+
+Estas características indican que la comparación no debe descansar
+únicamente en la media. Por ello, el análisis posterior utiliza la
+mediana, métodos no paramétricos y la transformación
+\variable{log_monto}, según el objetivo de cada procedimiento.
+
+Existe, además, un solapamiento considerable entre ambas clases. Hay
+buenos créditos de monto elevado y malos créditos de monto reducido. En
+consecuencia, el monto aporta información sobre el perfil de riesgo, pero
+no permite separar por sí solo las dos clases.
+
+\subsection{Edad del solicitante}
+
+Los casos clasificados como mal riesgo corresponden, en promedio, a
+solicitantes algo más jóvenes. La mediana de edad es de \(31\) años en
+el grupo de mal riesgo y de \(34\) años en el grupo de buen riesgo. Las
+medias respectivas son \(33.96\) y \(36.22\) años.
+
+La diferencia es menor que la observada en la duración y existe un
+amplio solapamiento entre ambas distribuciones. La edad se considera,
+por tanto, una señal potencialmente relevante, pero insuficiente para
+sostener una conclusión aislada. Su contribución deberá evaluarse dentro
+del modelo multivariable.
+
+Además, por tratarse de una característica personal, cualquier uso
+operacional de la edad requeriría revisar su pertinencia regulatoria,
+ética y de equidad.
+
+\subsection{Carga de la cuota}
+
+La variable \variable{tasa_cuota} representa una escala ordinal de carga
+financiera, no el porcentaje exacto de la cuota sobre el ingreso. El
+nivel \(4\), correspondiente a la categoría superior de la escala,
+concentra el \(53.0\,\%\) de los malos créditos y el \(45.3\,\%\) de
+los buenos.
+
+Esta comparación no significa que la tasa de mal crédito del nivel
+\(4\) sea del \(53.0\,\%\). El porcentaje está calculado dentro de cada
+clase y muestra que la categoría superior tiene mayor presencia relativa
+entre los casos de mal riesgo.
+
+El patrón es compatible con la hipótesis de que una mayor carga de pago
+puede reducir el margen financiero disponible del solicitante. No
+obstante, la interpretación debe mantenerse en términos ordinales,
+porque el dataset no proporciona el porcentaje exacto de ingreso
+comprometido.
+
+\subsection{Relaciones monotónicas entre variables}
+
+La matriz de correlaciones de Spearman permite evaluar asociaciones
+monotónicas entre las variables numéricas, las escalas ordinales y la
+respuesta binaria.
+
+La relación más alta aparece entre duración y monto:
+
+\[
+\rho_{\text{duración,monto}}=0.62.
+\]
+
+Esto indica que los créditos de mayor importe tienden a contratarse por
+plazos más extensos. La relación es suficientemente relevante para
+justificar una revisión posterior de multicolinealidad, aunque no implica
+que ambos predictores sean equivalentes.
+
+En relación con la respuesta:
+
+\[
+\rho_{\text{duración,mal crédito}}=0.21,
+\]
+
+\[
+\rho_{\text{monto,mal crédito}}=0.09,
+\]
+
+\[
+\rho_{\text{edad,mal crédito}}=-0.11.
+\]
+
+La duración presenta la asociación monotónica marginal más clara con el
+mal crédito. El monto tiene una asociación positiva mucho menor, mientras
+que la edad muestra una asociación negativa débil. Las demás variables
+numéricas y ordinales presentan coeficientes próximos a cero.
+
+Estos resultados no deben utilizarse para descartar automáticamente
+predictores. Una correlación marginal reducida puede coexistir con una
+asociación condicional relevante cuando se controlan otras variables,
+especialmente en presencia de categorías, interacciones o relaciones no
+lineales.
+
+\subsection{Síntesis exploratoria}
+
+La Tabla~\ref{tab:sintesis-eda} resume los patrones que orientan las
+etapas siguientes.
+
+\begin{table}[H]
+    \centering
+    \caption{Síntesis de los principales patrones exploratorios.}
+    \label{tab:sintesis-eda}
+
+    \begin{tabularx}{0.94\textwidth}{
+        @{}
+        >{\raggedright\arraybackslash}p{2.8cm}
+        X
+        >{\raggedright\arraybackslash}p{4.1cm}
+        @{}
+    }
+        \toprule
+        Dimensión
+        & Evidencia exploratoria
+        & Implicancia analítica \\
+        \midrule
+
+        Clase de riesgo
+        & \(70\,\%\) buenos y \(30\,\%\) malos.
+        & No evaluar el modelo únicamente mediante exactitud. \\
+
+        Propósito
+        & Tasas entre \(11.1\,\%\) y \(44.0\,\%\), con tamaños de
+          grupo heterogéneos.
+        & Aplicar prueba de independencia y considerar la estabilidad
+          de las categorías pequeñas. \\
+
+        Duración
+        & Mediana de \(18\) meses en buenos y \(24\) meses en malos.
+        & Comparar grupos y evaluar su asociación condicional. \\
+
+        Monto
+        & Valores mayores y más dispersos en los malos créditos.
+        & Utilizar medidas robustas, escala logarítmica y contraste no
+          paramétrico. \\
+
+        Edad
+        & Mediana de \(34\) años en buenos y \(31\) en malos.
+        & Evaluar si la asociación persiste dentro del modelo
+          multivariable. \\
+
+        Nivel de cuota
+        & Mayor presencia del nivel \(4\) entre los malos créditos.
+        & Interpretar como escala ordinal y no como porcentaje exacto. \\
+
+        Duración--monto
+        & Correlación de Spearman de \(0.62\).
+        & Revisar redundancia y multicolinealidad. \\
+
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+En conjunto, el EDA señala que la duración, el monto, la edad, la carga
+de la cuota y el propósito contienen información potencialmente útil
+para caracterizar el riesgo crediticio. Sin embargo, ninguna de estas
+variables separa de forma completa las clases y todas las comparaciones
+siguen siendo marginales.
+
+Las diferencias observadas se someterán a contrastes frecuentistas y a
+modelos multivariables. Esta transición es necesaria para determinar qué
+patrones se sostienen después de cuantificar la incertidumbre y controlar
+simultáneamente por otras características.
 % Contenido previsto:
 % - Balance de la clase.
 % - Distribución por propósito.
