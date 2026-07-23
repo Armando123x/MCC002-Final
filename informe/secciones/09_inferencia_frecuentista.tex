@@ -1,6 +1,738 @@
 \section{Inferencia estadística frecuentista}
 \label{sec:inferencia}
 
+El análisis exploratorio mostró diferencias en la tasa de mal crédito
+según el propósito del préstamo y contrastes en la duración y el monto
+entre las clases de riesgo. En esta sección se evalúa si esas diferencias
+pueden atribuirse únicamente a la variabilidad muestral o si existe
+evidencia estadística de asociación.
+
+Se realizaron tres contrastes previamente definidos por las preguntas de
+investigación:
+
+\begin{enumerate}
+    \item prueba chi-cuadrado de independencia entre propósito y clase de
+    riesgo;
+
+    \item prueba \(t\) de Welch para comparar la duración media;
+
+    \item prueba \(U\) de Mann--Whitney para comparar la distribución del
+    monto.
+\end{enumerate}
+
+En todos los contrastes se utilizó un nivel de significancia de:
+
+\[
+\alpha=0.05.
+\]
+
+Los valores \(p\) se acompañan con medidas de tamaño de efecto. Esta
+distinción es importante porque una diferencia puede ser estadísticamente
+significativa sin tener una magnitud relevante desde el punto de vista
+crediticio u operativo.
+
+\subsection{Asociación entre propósito y clase de riesgo}
+
+La primera pregunta inferencial es:
+
+\begin{quote}
+    ¿La proporción de malos créditos difiere según el propósito del
+    préstamo?
+\end{quote}
+
+Las variables \variable{proposito_lbl} y
+\variable{mal_credito} son categóricas. Por ello, se utilizó una prueba
+chi-cuadrado de independencia.
+
+Las hipótesis fueron:
+
+\[
+H_0:
+\text{el propósito y la clase de riesgo son independientes},
+\]
+
+\[
+H_1:
+\text{el propósito y la clase de riesgo están asociados}.
+\]
+
+El estadístico se define como:
+
+\[
+\chi^2
+=
+\sum_{i=1}^{r}
+\sum_{j=1}^{c}
+\frac{
+    \left(O_{ij}-E_{ij}\right)^2
+}{
+    E_{ij}
+},
+\]
+
+donde \(O_{ij}\) representa la frecuencia observada y \(E_{ij}\) la
+frecuencia esperada bajo independencia.
+
+Las frecuencias esperadas se calculan mediante:
+
+\[
+E_{ij}
+=
+\frac{
+    n_{i\cdot}n_{\cdot j}
+}{
+    n
+}.
+\]
+
+La tabla observada se presenta en la
+Tabla~\ref{tab:contingencia-proposito}.
+
+\begin{table}[H]
+    \centering
+    \caption{Frecuencias observadas de la clase de riesgo según el
+    propósito del préstamo.}
+    \label{tab:contingencia-proposito}
+
+    \begin{tabular}{
+        @{}
+        l
+        r
+        r
+        r
+        @{}
+    }
+        \toprule
+        Propósito
+        & Buen riesgo
+        & Mal riesgo
+        & Total \\
+        \midrule
+
+        Auto nuevo
+        & 145
+        & 89
+        & 234 \\
+
+        Auto usado
+        & 86
+        & 17
+        & 103 \\
+
+        Educación
+        & 28
+        & 22
+        & 50 \\
+
+        Electrodomésticos
+        & 8
+        & 4
+        & 12 \\
+
+        Mobiliario/equipos
+        & 123
+        & 58
+        & 181 \\
+
+        Negocio
+        & 63
+        & 34
+        & 97 \\
+
+        Otros
+        & 7
+        & 5
+        & 12 \\
+
+        Radio/TV
+        & 218
+        & 62
+        & 280 \\
+
+        Reentrenamiento
+        & 8
+        & 1
+        & 9 \\
+
+        Reparaciones
+        & 14
+        & 8
+        & 22 \\
+
+        \midrule
+        Total
+        & 700
+        & 300
+        & 1000 \\
+
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+El contraste produjo:
+
+\[
+\chi^2(9)=33.356,
+\qquad
+p=0.00012.
+\]
+
+Como:
+
+\[
+p<0.05,
+\]
+
+se rechaza la hipótesis nula de independencia. Existe evidencia
+estadística de una asociación entre el propósito declarado del préstamo
+y la clasificación crediticia.
+
+\subsubsection{Verificación de las frecuencias esperadas}
+
+La validez de la aproximación chi-cuadrado depende de que las frecuencias
+esperadas no sean excesivamente pequeñas. En la tabla analizada:
+
+\begin{itemize}
+    \item ninguna celda tuvo una frecuencia esperada menor que \(1\);
+
+    \item tres de las veinte celdas tuvieron una frecuencia esperada
+    menor que \(5\);
+
+    \item esas tres celdas representan el \(15\,\%\) del total.
+\end{itemize}
+
+Por tanto, se cumple el criterio habitual según el cual no debe haber
+frecuencias esperadas menores que uno y no más del \(20\,\%\) de las
+celdas deben situarse por debajo de cinco.
+
+La aproximación chi-cuadrado resulta razonable, aunque las categorías con
+pocos registros deben interpretarse con cautela.
+
+\subsection{Magnitud de la asociación: V de Cramér}
+
+El rechazo de \(H_0\) indica que existe una asociación, pero no informa
+sobre su intensidad. Para cuantificarla se utilizó la V de Cramér:
+
+\[
+V
+=
+\sqrt{
+    \frac{
+        \chi^2
+    }{
+        n\min(r-1,c-1)
+    }
+}.
+\]
+
+El resultado fue:
+
+\[
+V=0.183.
+\]
+
+Este valor corresponde a una asociación de magnitud pequeña. El propósito
+aporta información sobre la clasificación de riesgo, pero su capacidad
+explicativa individual es limitada.
+
+La significancia estadística debe interpretarse considerando que el
+dataset contiene \(1000\) observaciones. Con muestras relativamente
+grandes, asociaciones modestas pueden producir valores \(p\) pequeños.
+
+\subsection{Categorías que contribuyen a la asociación}
+
+Para identificar las categorías con mayor contribución se examinaron los
+residuos estandarizados de Pearson:
+
+\[
+R_{ij}
+=
+\frac{
+    O_{ij}-E_{ij}
+}{
+    \sqrt{E_{ij}}
+}.
+\]
+
+Un residuo positivo en la columna de mal crédito indica que se observaron
+más casos de riesgo que los esperados bajo independencia; un residuo
+negativo indica menos casos de los esperados.
+
+La Tabla~\ref{tab:residuos-proposito} presenta los residuos de la clase
+de mal riesgo.
+
+\begin{table}[H]
+    \centering
+    \caption{Residuos estandarizados para la clase de mal riesgo según
+    el propósito.}
+    \label{tab:residuos-proposito}
+
+    \begin{tabular}{
+        @{}
+        l
+        r
+        r
+        r
+        @{}
+    }
+        \toprule
+        Propósito
+        & Malos observados
+        & Malos esperados
+        & Residuo estandarizado \\
+        \midrule
+
+        Auto nuevo
+        & 89
+        & \num{70.2}
+        & \num{2.244} \\
+
+        Educación
+        & 22
+        & \num{15.0}
+        & \num{1.807} \\
+
+        Negocio
+        & 34
+        & \num{29.1}
+        & \num{0.908} \\
+
+        Otros
+        & 5
+        & \num{3.6}
+        & \num{0.738} \\
+
+        Reparaciones
+        & 8
+        & \num{6.6}
+        & \num{0.545} \\
+
+        Mobiliario/equipos
+        & 58
+        & \num{54.3}
+        & \num{0.502} \\
+
+        Electrodomésticos
+        & 4
+        & \num{3.6}
+        & \num{0.211} \\
+
+        Reentrenamiento
+        & 1
+        & \num{2.7}
+        & \num{-1.035} \\
+
+        Radio/TV
+        & 62
+        & \num{84.0}
+        & \num{-2.400} \\
+
+        Auto usado
+        & 17
+        & \num{30.9}
+        & \num{-2.501} \\
+
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Las mayores desviaciones corresponden a:
+
+\begin{itemize}
+    \item Auto nuevo, con más malos créditos que los esperados;
+
+    \item Radio/TV, con menos malos créditos que los esperados;
+
+    \item Auto usado, también con menos malos créditos que los
+    esperados.
+\end{itemize}
+
+Educación presenta una tasa observada elevada, pero su residuo no alcanza
+la misma magnitud que los anteriores debido al menor tamaño de la
+categoría. Esto muestra por qué no basta comparar porcentajes: la
+incertidumbre depende también del número de observaciones.
+
+Los residuos son diagnósticos descriptivos posteriores a una prueba
+global. No constituyen por sí solos diez pruebas independientes ni deben
+interpretarse como evidencia causal de que el propósito produzca el
+riesgo.
+
+\begin{hallazgo}
+El propósito del préstamo está asociado con la clase crediticia, pero la
+magnitud global es pequeña. El propósito aporta una señal de riesgo, no
+una regla suficiente para clasificar individualmente a un solicitante.
+\end{hallazgo}
+
+\subsection{Comparación de la duración}
+
+La segunda pregunta evaluada fue si la duración del crédito difiere entre
+buenos y malos riesgos.
+
+Las hipótesis fueron:
+
+\[
+H_0:
+\mu_{\mathrm{mal}}
+=
+\mu_{\mathrm{buen}},
+\]
+
+\[
+H_1:
+\mu_{\mathrm{mal}}
+\neq
+\mu_{\mathrm{buen}}.
+\]
+
+Se utilizó la prueba \(t\) de Welch porque no exige igualdad de varianzas
+entre los grupos. El estadístico puede expresarse como:
+
+\[
+t
+=
+\frac{
+    \overline{x}_{\mathrm{mal}}
+    -
+    \overline{x}_{\mathrm{buen}}
+}{
+    \sqrt{
+        \dfrac{s_{\mathrm{mal}}^2}{n_{\mathrm{mal}}}
+        +
+        \dfrac{s_{\mathrm{buen}}^2}{n_{\mathrm{buen}}}
+    }
+}.
+\]
+
+Los resultados descriptivos fueron:
+
+\[
+\overline{x}_{\mathrm{buen}}
+=
+19.21\text{ meses},
+\]
+
+\[
+\overline{x}_{\mathrm{mal}}
+=
+24.86\text{ meses}.
+\]
+
+La diferencia observada fue:
+
+\[
+24.86-19.21
+=
+5.65\text{ meses}.
+\]
+
+El contraste produjo:
+
+\[
+t=6.470,
+\qquad
+p<0.001.
+\]
+
+Se rechaza la hipótesis de igualdad de medias. Los créditos clasificados
+como mal riesgo presentan una duración media significativamente mayor que
+los clasificados como buen riesgo.
+
+\subsection{Tamaño del efecto de la duración}
+
+Para cuantificar la magnitud se utilizó la d de Cohen:
+
+\[
+d
+=
+\frac{
+    \overline{x}_{\mathrm{mal}}
+    -
+    \overline{x}_{\mathrm{buen}}
+}{
+    s_{\mathrm{pooled}}
+},
+\]
+
+donde:
+
+\[
+s_{\mathrm{pooled}}
+=
+\sqrt{
+    \frac{
+        (n_{\mathrm{mal}}-1)s_{\mathrm{mal}}^2
+        +
+        (n_{\mathrm{buen}}-1)s_{\mathrm{buen}}^2
+    }{
+        n_{\mathrm{mal}}+n_{\mathrm{buen}}-2
+    }
+}.
+\]
+
+El resultado fue:
+
+\[
+d=0.480.
+\]
+
+La magnitud puede describirse como pequeña a moderada y cercana al umbral
+convencional de un efecto medio. La diferencia no es únicamente producto
+del tamaño de la muestra: representa un desplazamiento visible entre las
+distribuciones de duración.
+
+Sin embargo, existe un solapamiento considerable entre los grupos. Un
+plazo largo no implica necesariamente que un crédito sea malo y un plazo
+corto no garantiza un buen resultado. La duración debe interpretarse
+junto con la liquidez, el historial, los ahorros y las demás variables
+del solicitante.
+
+\begin{hallazgo}
+La duración presenta la diferencia marginal más clara entre las variables
+numéricas evaluadas. Los malos créditos duran, en promedio, alrededor de
+\(5.65\) meses más, con un tamaño de efecto cercano a moderado.
+\end{hallazgo}
+
+\subsection{Comparación del monto}
+
+El monto presenta una fuerte asimetría positiva y valores elevados en la
+cola derecha. Por esta razón, la comparación principal se realizó con la
+prueba \(U\) de Mann--Whitney.
+
+Las hipótesis fueron:
+
+\[
+H_0:
+\text{la distribución del monto es equivalente en ambos grupos},
+\]
+
+\[
+H_1:
+\text{la distribución del monto difiere entre los grupos}.
+\]
+
+Las medianas observadas fueron:
+
+\[
+\widetilde{x}_{\mathrm{buen}}
+=
+2244\text{ DM},
+\]
+
+\[
+\widetilde{x}_{\mathrm{mal}}
+=
+2574.5\text{ DM}.
+\]
+
+La diferencia de medianas fue:
+
+\[
+2574.5-2244
+=
+330.5\text{ DM}.
+\]
+
+La prueba produjo:
+
+\[
+U=116\,520,
+\qquad
+p=0.00592.
+\]
+
+Como el valor \(p\) es menor que \(0.05\), se rechaza la hipótesis nula.
+Existe evidencia de una diferencia en la distribución del monto entre
+buenos y malos créditos.
+
+\subsection{Tamaños del efecto del monto}
+
+El tamaño del efecto no paramétrico se calculó mediante la correlación
+biserial de rangos:
+
+\[
+r_{\mathrm{rb}}
+=
+\frac{
+    2U
+}{
+    n_{\mathrm{mal}}n_{\mathrm{buen}}
+}
+-1.
+\]
+
+El resultado fue:
+
+\[
+r_{\mathrm{rb}}=0.110.
+\]
+
+El signo positivo indica que los montos del grupo de mal riesgo tienden a
+ocupar rangos más altos. Su magnitud es pequeña.
+
+Como medida complementaria se calculó la d de Cohen sobre el logaritmo
+del monto:
+
+\[
+d_{\log(\mathrm{monto})}
+=
+0.240.
+\]
+
+Esta medida también indica un efecto pequeño. Por tanto, aunque la
+diferencia es estadísticamente significativa, el monto por sí solo
+proporciona una separación limitada entre las clases.
+
+La diferencia observada puede estar relacionada con la duración. El
+coeficiente de Spearman entre duración y monto fue aproximadamente:
+
+\[
+\rho=0.62.
+\]
+
+Los créditos más altos tienden a distribuirse en plazos más largos. Por
+ello, una asociación marginal entre monto y riesgo no implica que el
+monto conserve un efecto independiente al controlar por la duración.
+
+\begin{hallazgo}
+Los malos créditos presentan montos generalmente mayores, pero la
+magnitud de la diferencia es pequeña. La significancia marginal debe
+contrastarse con el modelo multivariable antes de atribuir al monto un
+papel independiente.
+\end{hallazgo}
+
+\subsection{Resumen de los contrastes}
+
+La Tabla~\ref{tab:resumen-inferencia} reúne los resultados principales.
+
+\begin{table}[H]
+    \centering
+    \caption{Resumen de las pruebas de hipótesis y tamaños de efecto.}
+    \label{tab:resumen-inferencia}
+
+    \footnotesize
+    \begin{tabularx}{\textwidth}{
+        @{}
+        >{\raggedright\arraybackslash}p{2.5cm}
+        >{\raggedright\arraybackslash}p{2.7cm}
+        >{\centering\arraybackslash}p{2.3cm}
+        >{\centering\arraybackslash}p{1.5cm}
+        >{\raggedright\arraybackslash}p{2.7cm}
+        X
+        @{}
+    }
+        \toprule
+        Relación
+        & Prueba
+        & Estadístico
+        & \(p\)
+        & Tamaño del efecto
+        & Interpretación \\
+        \midrule
+
+        Propósito y riesgo
+        & Chi-cuadrado de independencia
+        & \(\chi^2(9)=33.356\)
+        & \num{0.00012}
+        & \(V=0.183\)
+        & Asociación estadísticamente significativa, pero pequeña. \\
+
+        Duración por clase
+        & \(t\) de Welch
+        & \(t=6.470\)
+        & \(<0.001\)
+        & \(d=0.480\)
+        & Los malos créditos presentan plazos mayores; efecto pequeño a
+          moderado. \\
+
+        Monto por clase
+        & \(U\) de Mann--Whitney
+        & \(U=116\,520\)
+        & \num{0.00592}
+        & \(r_{\mathrm{rb}}=0.110\)
+        & Los malos créditos tienden a tener montos mayores; efecto
+          pequeño. \\
+
+        Logaritmo del monto
+        & Medida complementaria
+        & ---
+        & ---
+        & \(d=0.240\)
+        & Diferencia estandarizada pequeña después de transformar la
+          escala. \\
+
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\subsection{Interpretación integrada de la evidencia frecuentista}
+
+Las tres relaciones evaluadas presentan evidencia estadística de
+asociación con el riesgo. Sin embargo, sus magnitudes son diferentes:
+
+\begin{itemize}
+    \item el propósito muestra una asociación global pequeña;
+
+    \item la duración presenta el efecto numérico marginal más fuerte;
+
+    \item el monto presenta una diferencia estadísticamente significativa,
+    pero con un efecto pequeño.
+\end{itemize}
+
+Estos resultados responden a comparaciones marginales: cada predictor se
+analiza por separado. No permiten concluir que propósito, duración o monto
+mantengan el mismo efecto cuando se controlan simultáneamente las demás
+características.
+
+En particular, la correlación entre duración y monto puede producir una
+aparente asociación del monto con el riesgo que disminuya después de
+incorporar ambas variables en un modelo conjunto.
+
+La regresión logística de la Sección~\ref{sec:regresion} permitirá
+distinguir entre:
+
+\begin{itemize}
+    \item asociación marginal, observada en comparaciones individuales;
+
+    \item asociación condicional, estimada manteniendo constantes los
+    demás predictores incluidos en el modelo.
+\end{itemize}
+
+Esta distinción resulta central en ciencia de datos de riesgo de crédito.
+Una variable puede ser útil para segmentar descriptivamente una cartera y,
+al mismo tiempo, aportar poca información incremental una vez que el
+modelo ya conoce otras características relacionadas.
+
+\subsection{Supuestos y limitaciones}
+
+Los contrastes se apoyan en varios supuestos:
+
+\begin{itemize}
+    \item las observaciones se tratan como registros independientes;
+
+    \item las etiquetas de riesgo se consideran correctamente definidas;
+
+    \item la muestra se interpreta como representativa de una población
+    comparable con el dataset original;
+
+    \item las pruebas evalúan asociación y no causalidad.
+\end{itemize}
+
+La prueba de Welch reduce la dependencia del supuesto de igualdad de
+varianzas, pero continúa evaluando una diferencia entre medias. La prueba
+de Mann--Whitney trabaja con rangos y es más robusta frente a la
+asimetría; sin embargo, no debe interpretarse automáticamente como una
+prueba exclusiva de medianas cuando las formas de las distribuciones
+difieren.
+
+Los valores \(p\) cuantifican la incompatibilidad de los datos con las
+hipótesis nulas bajo los modelos asumidos. No expresan la probabilidad de
+que una hipótesis sea verdadera y no miden la importancia económica de
+una diferencia.
+
+Por ello, las decisiones se interpretan junto con los tamaños de efecto,
+las distribuciones observadas y los resultados de los modelos
+multivariables.
+
 % Contenido previsto:
 % - Chi-cuadrado: clase de riesgo por propósito.
 % - V de Cramér.
