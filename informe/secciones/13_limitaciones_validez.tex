@@ -1,6 +1,741 @@
 \section{Limitaciones y validez}
 \label{sec:limitaciones}
 
+Los resultados obtenidos son consistentes dentro del conjunto de datos y
+de los procedimientos aplicados, pero su interpretación está condicionada
+por la calidad de la fuente, la definición de la respuesta, los supuestos
+estadísticos y el diseño de evaluación.
+
+Esta sección distingue cinco dimensiones: validez interna, validez de
+constructo, validez predictiva, validez externa y validez operativa.
+También se consideran las limitaciones específicas del análisis
+bayesiano y los riesgos asociados con el uso de variables sensibles.
+
+\subsection{Validez interna}
+
+La validez interna se refiere a la coherencia entre los datos, los métodos
+aplicados y las conclusiones obtenidas dentro del estudio.
+
+El flujo de análisis presenta varias fortalezas:
+
+\begin{itemize}
+    \item la variable respuesta fue recodificada de manera explícita como
+    \(1=\) mal crédito;
+
+    \item no se detectaron valores faltantes ni filas completamente
+    duplicadas;
+
+    \item las dimensiones, categorías y rangos fueron verificados antes
+    del análisis;
+
+    \item las comparaciones inferenciales se acompañaron con tamaños de
+    efecto;
+
+    \item la regresión OLS fue evaluada mediante diagnósticos gráficos,
+    pruebas formales y validación cruzada;
+
+    \item la regresión logística fue evaluada fuera de muestra y mediante
+    validación cruzada estratificada;
+
+    \item los resultados frecuentistas se contrastaron con estimaciones
+    bayesianas.
+\end{itemize}
+
+Sin embargo, el estudio continúa siendo observacional. Las asociaciones
+identificadas no se obtuvieron mediante una asignación aleatoria de
+duraciones, montos o condiciones financieras. Por ello, no es posible
+atribuir un efecto causal a los predictores.
+
+Por ejemplo, el coeficiente positivo de la duración puede reflejar una
+combinación de factores:
+
+\begin{itemize}
+    \item exposición durante un horizonte más prolongado;
+
+    \item necesidad de financiar montos mayores;
+
+    \item menor capacidad de pago mensual;
+
+    \item reglas de originación no observadas;
+
+    \item características del solicitante que no aparecen en el dataset.
+\end{itemize}
+
+La regresión reduce parcialmente la confusión al controlar por varias
+variables, pero no elimina el sesgo derivado de factores omitidos.
+
+\subsection{Validez de constructo}
+
+La validez de constructo examina si las variables disponibles representan
+adecuadamente los conceptos que se pretende estudiar.
+
+\subsubsection{Definición de mal riesgo}
+
+La respuesta original clasifica cada registro como buen o mal riesgo, pero
+la documentación disponible no especifica completamente:
+
+\begin{itemize}
+    \item el horizonte durante el cual se evaluó el comportamiento;
+
+    \item el número de días de atraso considerado como incumplimiento;
+
+    \item si la etiqueta incorpora refinanciaciones, pérdidas o
+    recuperación;
+
+    \item si la clasificación fue asignada mediante una regla automática,
+    evaluación humana o combinación de ambas.
+\end{itemize}
+
+Por tanto, \variable{mal_credito} debe interpretarse como la etiqueta de
+riesgo proporcionada por la fuente, no como una definición contemporánea
+y universal de \textit{default}.
+
+Esta diferencia es importante porque una institución podría utilizar una
+definición distinta, por ejemplo, mora superior a noventa días dentro de
+los doce meses posteriores a la originación. Un cambio en esa definición
+modificaría la prevalencia, los coeficientes y las métricas del modelo.
+
+\subsubsection{Variables ordinales}
+
+Las variables \variable{tasa_cuota} y
+\variable{anios_residencia} están codificadas mediante valores enteros
+entre 1 y 4. Estos valores representan niveles ordenados, pero no se
+conocen las distancias exactas entre las categorías.
+
+Al utilizarlas como términos lineales se supone implícitamente que el
+cambio entre los niveles 1 y 2 es comparable con el cambio entre los
+niveles 3 y 4. Esta simplificación mejora la parsimonia, pero puede no
+representar correctamente la relación real.
+
+Una alternativa sería incorporarlas mediante indicadores categóricos o
+comparar modelos con funciones no lineales.
+
+\subsubsection{Categorías ambiguas}
+
+Algunos códigos combinan situaciones conceptualmente diferentes. Por
+ejemplo:
+
+\begin{itemize}
+    \item \texttt{A65} representa ahorros desconocidos o ausencia de una
+    cuenta de ahorros;
+
+    \item \texttt{A124} representa propiedad desconocida o inexistente;
+
+    \item \variable{estatus_personal_sexo} combina sexo y estado
+    personal en una sola variable.
+\end{itemize}
+
+Estas categorías impiden distinguir si una asociación se debe a ausencia
+real del recurso, falta de información o una combinación de ambas
+situaciones.
+
+Por esta razón, los coeficientes correspondientes no deben interpretarse
+como efectos precisos de una única condición.
+
+\subsection{Sesgo de selección}
+
+El dataset contiene únicamente registros para los cuales existe una
+clasificación final de riesgo. No se dispone de información sobre las
+personas que solicitaron un crédito y fueron rechazadas antes de ingresar
+a la cartera observada.
+
+Esta situación puede generar sesgo de selección. El modelo aprende a
+distinguir buenos y malos resultados dentro de la población aceptada o
+evaluada por el proceso original, pero no necesariamente dentro de toda
+la población solicitante.
+
+En riesgo crediticio, este problema se relaciona con el
+\textit{reject inference}. Los perfiles rechazados podrían presentar
+distribuciones diferentes de ingresos, liquidez, historial o duración.
+Al no observar sus resultados potenciales, no es posible estimar
+directamente cómo se habría comportado el modelo sobre ellos.
+
+En consecuencia:
+
+\[
+\Pr
+\left(
+    Y=1
+    \mid
+    X,\,
+    \text{registro observado}
+\right)
+\]
+
+no necesariamente coincide con:
+
+\[
+\Pr
+\left(
+    Y=1
+    \mid
+    X,\,
+    \text{población total de solicitantes}
+\right).
+\]
+
+Esta limitación afecta tanto la interpretación de los coeficientes como
+una eventual política de aprobación.
+
+\subsection{Validez predictiva}
+
+La regresión logística alcanzó una AUC de prueba de:
+
+\[
+0.7740,
+\]
+
+y una AUC media de validación cruzada de:
+
+\[
+0.7685
+\pm
+0.0221.
+\]
+
+La cercanía entre ambos resultados sugiere estabilidad dentro de las
+particiones evaluadas. Sin embargo, esta evidencia no constituye una
+validación completa.
+
+\subsubsection{Partición aleatoria}
+
+El conjunto de prueba fue obtenido mediante una partición aleatoria
+estratificada. Este diseño evalúa el desempeño cuando entrenamiento y
+prueba proceden de una distribución similar.
+
+No se realizó una validación temporal, porque el dataset no proporciona
+una variable de fecha adecuada. En una cartera real, las condiciones
+macroeconómicas, las políticas de aprobación y el comportamiento de los
+clientes cambian con el tiempo.
+
+Por tanto, el desempeño obtenido no permite evaluar:
+
+\begin{itemize}
+    \item degradación temporal del modelo;
+
+    \item cambios en la población solicitante;
+
+    \item modificaciones de la política crediticia;
+
+    \item efectos de inflación, desempleo o tasas de interés;
+
+    \item estabilidad de las categorías a través del tiempo.
+\end{itemize}
+
+\subsubsection{Tamaño del conjunto de prueba}
+
+El conjunto de prueba contiene \(300\) observaciones, de las cuales
+\(90\) corresponden a mal riesgo. Las métricas dependen de un número
+relativamente limitado de casos positivos.
+
+Por ejemplo, una variación de nueve malos créditos correctamente
+clasificados modifica el recall en diez puntos porcentuales. Esto implica
+que las métricas operativas pueden presentar variabilidad relevante entre
+muestras.
+
+La validación cruzada reduce la dependencia de una única partición, pero
+no sustituye una validación externa sobre una cartera independiente.
+
+\subsubsection{Calibración}
+
+La AUC mide capacidad de ordenamiento, no calibración. Un modelo puede
+asignar puntajes mayores a los malos créditos y, al mismo tiempo,
+sobreestimar o subestimar sus probabilidades absolutas.
+
+El umbral teórico:
+
+\[
+t^{*}
+=
+\frac{1}{6}
+\]
+
+se deriva de la matriz de costos suponiendo probabilidades razonablemente
+calibradas. El trabajo no incluyó formalmente:
+
+\begin{itemize}
+    \item curva de calibración;
+
+    \item puntuación de Brier;
+
+    \item intercepto y pendiente de calibración;
+
+    \item recalibración mediante Platt o regresión isotónica.
+\end{itemize}
+
+Por ello, la reducción de costo observada demuestra la utilidad del
+umbral dentro del conjunto evaluado, pero no garantiza que el mismo punto
+de corte sea óptimo en una cartera futura.
+
+\subsection{Especificación del modelo}
+
+La regresión logística supone que los predictores numéricos mantienen una
+relación lineal con el logit de la probabilidad:
+
+\[
+\log
+\left(
+    \frac{p}{1-p}
+\right).
+\]
+
+Esta condición no fue evaluada mediante splines, polinomios o pruebas
+específicas de linealidad para cada predictor. Es posible que la relación
+entre duración y riesgo cambie en distintos rangos; por ejemplo, que el
+aumento de riesgo entre 12 y 24 meses no sea equivalente al observado
+entre 48 y 60 meses.
+
+Tampoco se incorporaron interacciones. Una misma duración podría tener
+implicaciones diferentes según:
+
+\begin{itemize}
+    \item el nivel de ahorros;
+
+    \item la carga de la cuota;
+
+    \item el estado de la cuenta;
+
+    \item el propósito del préstamo.
+\end{itemize}
+
+El modelo fue mantenido deliberadamente interpretable y parsimonioso.
+Esta decisión facilita la lectura de los coeficientes, pero puede limitar
+la capacidad para capturar patrones complejos.
+
+\subsection{Variables omitidas}
+
+La base no contiene varias características que serían relevantes en un
+modelo crediticio contemporáneo, entre ellas:
+
+\begin{itemize}
+    \item ingreso mensual exacto;
+
+    \item relación cuota-ingreso calculada;
+
+    \item nivel total de endeudamiento;
+
+    \item comportamiento reciente de pagos;
+
+    \item consultas anteriores en centrales de riesgo;
+
+    \item estabilidad y sector del ingreso;
+
+    \item garantías y relación préstamo-valor;
+
+    \item información macroeconómica;
+
+    \item fecha de originación y fecha de observación.
+\end{itemize}
+
+La omisión de estos predictores limita tanto la discriminación como la
+interpretación de las variables disponibles. Parte del efecto atribuido
+a duración, ahorros o vivienda puede representar indirectamente
+información financiera no observada.
+
+\subsection{Categorías poco frecuentes}
+
+Algunas categorías contienen un número reducido de registros. Esto se
+observó especialmente en determinados propósitos y niveles categóricos.
+
+Los grupos pequeños generan:
+
+\begin{itemize}
+    \item tasas observadas inestables;
+
+    \item intervalos de confianza amplios;
+
+    \item coeficientes logísticos con mayor error estándar;
+
+    \item sensibilidad frente a pocas observaciones.
+\end{itemize}
+
+Aunque la prueba chi-cuadrado cumplió los criterios habituales de
+frecuencias esperadas, los porcentajes de categorías pequeñas deben
+interpretarse como evidencia exploratoria y no como reglas estables de
+segmentación.
+
+En una aplicación real sería necesario evaluar si corresponde agrupar
+categorías sobre una base estadística y de negocio, evitando combinaciones
+arbitrarias realizadas únicamente para mejorar el ajuste.
+
+\subsection{Multiplicidad e interpretación de significancia}
+
+El modelo logístico incluye varios coeficientes categóricos y se
+examinaron múltiples asociaciones. Cada valor \(p\) fue interpretado con
+un nivel nominal de \(0.05\), sin aplicar una corrección formal por
+comparaciones múltiples.
+
+Esto incrementa la posibilidad de identificar alguna asociación
+estadísticamente significativa por azar. Por ejemplo, el resultado de la
+antigüedad laboral entre cuatro y siete años presenta:
+
+\[
+p=0.0497,
+\]
+
+con un intervalo cuyo límite superior se encuentra muy próximo a uno.
+Esta asociación debe considerarse débil y requiere confirmación externa.
+
+Las conclusiones principales no se apoyan exclusivamente en ese tipo de
+resultados limítrofes. Se priorizó la consistencia entre análisis
+descriptivo, inferencia, regresión, validación y análisis bayesiano.
+
+\subsection{Validez externa}
+
+El dataset fue publicado en 1994 y corresponde a un contexto financiero
+alemán. Las características económicas, regulatorias y tecnológicas del
+mercado crediticio han cambiado de manera sustancial desde entonces.
+
+Entre las diferencias relevantes se encuentran:
+
+\begin{itemize}
+    \item sistemas actuales de centrales de riesgo;
+
+    \item procesos digitales de originación;
+
+    \item nuevas fuentes de información transaccional;
+
+    \item cambios regulatorios sobre protección al consumidor;
+
+    \item variaciones en empleo, ingresos, inflación y tasas;
+
+    \item evolución de las políticas de inclusión financiera.
+\end{itemize}
+
+Además, el monto se expresa en marcos alemanes y las categorías reflejan
+productos y prácticas de la época. No es válido trasladar directamente
+los coeficientes, tasas o umbrales a una institución peruana
+contemporánea.
+
+Una aplicación en otro contexto requeriría:
+
+\begin{enumerate}
+    \item definir nuevamente el evento de incumplimiento;
+
+    \item construir una muestra reciente y representativa;
+
+    \item recalibrar las probabilidades;
+
+    \item estimar costos institucionales reales;
+
+    \item validar el modelo temporal y externamente;
+
+    \item revisar las variables permitidas por la regulación local.
+\end{enumerate}
+
+Por tanto, el trabajo demuestra un procedimiento de análisis, no un
+modelo transferible sin ajustes.
+
+\subsection{Validez operativa y matriz de costos}
+
+La matriz de costos asigna un costo de cinco unidades a un falso negativo
+y una unidad a un falso positivo. Esta relación permitió comparar
+políticas de decisión, pero constituye una simplificación.
+
+En una institución real, el costo de un falso negativo no es constante.
+Depende, entre otros factores, de:
+
+\begin{itemize}
+    \item monto expuesto al incumplimiento;
+
+    \item probabilidad de incumplimiento;
+
+    \item pérdida dado incumplimiento;
+
+    \item exposición al momento del incumplimiento;
+
+    \item recuperaciones y garantías;
+
+    \item gastos legales y de cobranza.
+\end{itemize}
+
+El costo de un falso positivo tampoco se limita a una unidad fija. Puede
+incluir margen financiero perdido, costo de adquisición del cliente,
+valor de relaciones futuras y consecuencias de exclusión financiera.
+
+Por ello, el umbral \(1/6\) debe interpretarse como la solución teórica
+del ejercicio bajo costos constantes \(5:1\), no como una política
+crediticia universal.
+
+\subsection{Equidad y variables sensibles}
+
+El dataset contiene variables que pueden ser sensibles o actuar como
+proxies de características protegidas:
+
+\begin{itemize}
+    \item edad;
+
+    \item sexo y estado personal combinados;
+
+    \item condición de trabajador extranjero;
+
+    \item vivienda;
+
+    \item situación laboral.
+\end{itemize}
+
+El estudio no realizó una auditoría formal de equidad. No se calcularon
+métricas como:
+
+\begin{itemize}
+    \item paridad de selección;
+
+    \item igualdad de oportunidades;
+
+    \item igualdad de tasas de falsos positivos;
+
+    \item calibración por subgrupo;
+
+    \item impacto adverso.
+\end{itemize}
+
+En consecuencia, un desempeño global aceptable no garantiza que los
+errores se distribuyan de manera equitativa entre grupos.
+
+Además, algunas variables aparentemente financieras pueden funcionar como
+proxies de condiciones sociales o demográficas. Eliminar una variable
+sensible tampoco garantiza automáticamente equidad, porque otras
+variables correlacionadas pueden conservar parte de la misma información.
+
+Una aplicación responsable requeriría evaluar el desempeño por subgrupo,
+revisar la legitimidad de cada predictor y mantener mecanismos de
+explicación y apelación.
+
+\subsection{Riesgo de automatización}
+
+El modelo produce una probabilidad estimada y una clasificación derivada
+de un umbral. Sin embargo, estas salidas no deben interpretarse como una
+decisión definitiva.
+
+Una automatización sin supervisión podría:
+
+\begin{itemize}
+    \item amplificar patrones históricos;
+
+    \item rechazar perfiles solventes;
+
+    \item ocultar errores detrás de una probabilidad aparentemente
+    objetiva;
+
+    \item dificultar la revisión de casos excepcionales;
+
+    \item generar dependencia excesiva del modelo.
+\end{itemize}
+
+El uso apropiado sería como herramienta de apoyo. Los casos cercanos al
+umbral, con información incompleta o con consecuencias especialmente
+altas deberían pasar por revisión adicional.
+
+También sería necesario registrar las razones de decisión, monitorear la
+deriva del modelo y permitir correcciones cuando se detecten errores.
+
+\subsection{Limitaciones del análisis OLS}
+
+La regresión OLS tuvo como respuesta el logaritmo del monto y no la clase
+de riesgo. Su finalidad fue describir la estructura del monto y evaluar
+los supuestos de un modelo lineal múltiple.
+
+Aunque la transformación redujo la asimetría, la prueba de
+Shapiro--Wilk rechazó la normalidad estricta de los residuos:
+
+\[
+p=0.00275.
+\]
+
+La muestra grande hace que la prueba sea sensible a desviaciones pequeñas,
+y la inferencia robusta HC3 mantuvo las conclusiones. No obstante, el
+modelo no debe interpretarse como una representación perfecta del proceso
+de determinación del monto.
+
+Tampoco se incorporaron variables categóricas, interacciones ni relaciones
+no lineales en esa especificación auxiliar. El \(R^2\) cercano a
+\(0.54\) indica una capacidad explicativa relevante, pero deja una parte
+importante de variabilidad sin explicar.
+
+\subsection{Limitaciones del análisis bayesiano}
+
+El modelo Beta--Binomial supone una única tasa común de mal crédito y no
+representa la heterogeneidad entre perfiles. Su posterior estrecha refleja
+la precisión de la tasa agregada dentro del modelo, pero no elimina los
+problemas de selección o representatividad.
+
+La sensibilidad al prior fue reducida porque la muestra contiene
+\(1000\) registros y los priors utilizados son débiles. Esta robustez no
+garantiza que toda elección previa produzca el mismo resultado. Un prior
+muy concentrado o una muestra pequeña podría modificar sustancialmente
+la posterior.
+
+El análisis Metropolis--Hastings presenta limitaciones adicionales:
+
+\begin{itemize}
+    \item se ejecutó una sola cadena;
+
+    \item no fue posible calcular \(\widehat{R}\);
+
+    \item el ESS del coeficiente de duración fue aproximadamente \(429\),
+    pese a retener \(\num{32000}\) iteraciones;
+
+    \item los diagnósticos se concentraron principalmente en el
+    coeficiente de duración;
+
+    \item no se evaluó la sensibilidad a otras escalas del prior;
+
+    \item no se comparó el sampler con métodos MCMC más eficientes.
+\end{itemize}
+
+La tasa de aceptación de \(25.68\,\%\), la traza estable y la coherencia
+con el MLE respaldan el resultado, pero no constituyen una demostración
+completa de convergencia de la posterior conjunta.
+
+Para un análisis bayesiano más riguroso sería necesario ejecutar varias
+cadenas, utilizar inicializaciones dispersas y evaluar todos los
+coeficientes mediante ESS, \(\widehat{R}\), trazas y autocorrelaciones.
+
+\subsection{Reproducibilidad y dependencia computacional}
+
+El notebook fija una semilla, registra versiones de las principales
+bibliotecas, descarga el dataset cuando no está disponible y exporta las
+figuras y tablas utilizadas en el informe.
+
+No obstante, la reproducción exacta puede depender de:
+
+\begin{itemize}
+    \item versiones de Python y de las bibliotecas;
+
+    \item cambios futuros en la ubicación del archivo de UCI;
+
+    \item diferencias numéricas entre plataformas;
+
+    \item actualizaciones de los algoritmos internos de optimización;
+
+    \item modificaciones accidentales del notebook después de generar
+    los resultados.
+\end{itemize}
+
+Para reducir estos riesgos, el repositorio debe conservar:
+
+\begin{itemize}
+    \item el archivo de dependencias;
+
+    \item la semilla global;
+
+    \item los artefactos exportados;
+
+    \item el historial de Git;
+
+    \item instrucciones de ejecución desde un entorno limpio.
+\end{itemize}
+
+La consistencia entre notebook, tablas, figuras e informe debe comprobarse
+antes de la entrega final.
+
+\subsection{Resumen de limitaciones}
+
+La Tabla~\ref{tab:resumen-limitaciones} sintetiza los principales riesgos
+de validez.
+
+\begin{table}[H]
+    \centering
+    \caption{Principales limitaciones y sus consecuencias.}
+    \label{tab:resumen-limitaciones}
+
+    \small
+    \begin{tabularx}{\textwidth}{
+        @{}
+        >{\raggedright\arraybackslash}p{2.8cm}
+        >{\raggedright\arraybackslash}p{4.3cm}
+        X
+        @{}
+    }
+        \toprule
+        Dimensión
+        & Limitación
+        & Consecuencia \\
+        \midrule
+
+        Interna
+        & Datos observacionales y posibles variables omitidas.
+        & Las asociaciones no permiten establecer causalidad. \\
+
+        Constructo
+        & Definición incompleta de la clase de mal riesgo.
+        & La respuesta puede no coincidir con una definición actual de
+          incumplimiento. \\
+
+        Selección
+        & Ausencia de solicitantes rechazados.
+        & El modelo describe la población observada, no necesariamente
+          a todos los solicitantes. \\
+
+        Predictiva
+        & Partición aleatoria sin validación temporal ni externa.
+        & La estabilidad futura del desempeño no está demostrada. \\
+
+        Calibración
+        & No se evaluó formalmente la calibración.
+        & El umbral de costos depende de probabilidades cuya precisión
+          absoluta no fue validada. \\
+
+        Externa
+        & Datos alemanes históricos.
+        & Los coeficientes y umbrales no pueden trasladarse directamente
+          a una cartera peruana contemporánea. \\
+
+        Operativa
+        & Matriz de costos fija \(5:1\).
+        & El umbral obtenido es académico y no sustituye una estimación
+          económica institucional. \\
+
+        Equidad
+        & Presencia de variables sensibles y ausencia de auditoría por
+          subgrupos.
+        & No puede asegurarse una distribución equitativa de los errores. \\
+
+        Bayesiana
+        & Una sola cadena y ESS limitado.
+        & Los resultados MCMC requieren diagnósticos adicionales para una
+          validación completa. \\
+
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\subsection{Alcance válido de las conclusiones}
+
+Considerando las limitaciones anteriores, las conclusiones son válidas
+dentro del siguiente alcance:
+
+\begin{quote}
+Los resultados describen asociaciones y capacidad predictiva dentro del
+conjunto \textit{Statlog German Credit Data}, bajo la codificación, los
+predictores, los modelos y los costos especificados en el trabajo.
+\end{quote}
+
+No resulta válido afirmar que:
+
+\begin{itemize}
+    \item una mayor duración cause necesariamente incumplimiento;
+
+    \item los coeficientes estimados se mantengan en cualquier país o
+    periodo;
+
+    \item el umbral \(1/6\) sea óptimo para toda institución;
+
+    \item el modelo pueda aprobar o rechazar créditos sin revisión;
+
+    \item la ausencia de una auditoría de equidad implique ausencia de
+    sesgo.
+\end{itemize}
+
+La principal contribución del estudio es metodológica: muestra cómo
+integrar análisis exploratorio, inferencia frecuentista, regresión,
+validación predictiva, costos asimétricos e inferencia bayesiana dentro de
+un flujo reproducible.
+
+Los resultados constituyen una base para formular hipótesis y diseñar una
+validación más completa, no una política crediticia lista para
+despliegue.
+
 % Contenido previsto:
 % - Validez interna, externa y de constructo.
 % - Antigüedad y contexto alemán del dataset.
