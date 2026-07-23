@@ -572,6 +572,939 @@ mayor probabilidad de mal crédito. Esa pregunta requiere un modelo con
 respuesta binaria, desarrollado en el bloque siguiente mediante
 regresión logística.
 
+\subsection{Regresión logística para la probabilidad de mal crédito}
+\label{subsec:logit}
+
+La segunda parte del modelamiento utiliza como respuesta la variable:
+
+\[
+Y_i=\variable{mal_credito}_i,
+\]
+
+donde:
+
+\[
+Y_i=
+\begin{cases}
+1, & \text{si el registro corresponde a mal riesgo},\\
+0, & \text{si corresponde a buen riesgo}.
+\end{cases}
+\]
+
+Sea:
+
+\[
+p_i
+=
+\Pr(Y_i=1\mid\mathbf{x}_i)
+\]
+
+la probabilidad condicional de que la observación \(i\) sea clasificada
+como mal crédito. La regresión logística relaciona esta probabilidad con
+los predictores mediante:
+
+\[
+\operatorname{logit}(p_i)
+=
+\log\left(
+    \frac{p_i}{1-p_i}
+\right)
+=
+\beta_0+\mathbf{x}_i^{\mathsf{T}}\boldsymbol{\beta}.
+\]
+
+De forma equivalente:
+
+\[
+p_i
+=
+\frac{
+    \exp\left(
+        \beta_0+\mathbf{x}_i^{\mathsf{T}}\boldsymbol{\beta}
+    \right)
+}{
+    1+
+    \exp\left(
+        \beta_0+\mathbf{x}_i^{\mathsf{T}}\boldsymbol{\beta}
+    \right)
+}.
+\]
+
+El modelo estima probabilidades individuales de mal riesgo. La
+transformación de esas probabilidades en una decisión binaria requiere
+un umbral, cuya selección se analiza posteriormente.
+
+\subsubsection{Diseño de entrenamiento y prueba}
+
+El conjunto de datos se dividió de forma estratificada en:
+
+\[
+70\,\% \text{ para entrenamiento}
+\qquad\text{y}\qquad
+30\,\% \text{ para prueba}.
+\]
+
+La partición resultante fue:
+
+\[
+n_{\mathrm{train}}=700,
+\qquad
+n_{\mathrm{test}}=300.
+\]
+
+La tasa de mal crédito se mantuvo en \(30.0\,\%\) en ambos subconjuntos.
+Por tanto, el conjunto de entrenamiento contiene \(210\) malos créditos
+y el conjunto de prueba contiene \(90\).
+
+La estratificación permite comparar el desempeño sin que una variación
+accidental de la prevalencia modifique de manera importante las métricas.
+El modelo se ajustó exclusivamente con el conjunto de entrenamiento. El
+conjunto de prueba permaneció separado hasta la evaluación final.
+
+La semilla utilizada fue:
+
+\[
+\texttt{SEED}=2026.
+\]
+
+\subsubsection{Especificación del modelo}
+
+La especificación incorporó variables contractuales, antecedentes
+crediticios y señales de estabilidad financiera:
+
+\[
+\begin{aligned}
+\operatorname{logit}(p_i)
+={}&
+\beta_0
++\beta_1\variable{duracion}_i
++\beta_2\variable{log_monto}_i
++\beta_3\variable{tasa_cuota}_i
++\beta_4\variable{edad}_i\\
+&+\text{estado de cuenta}
++\text{historial crediticio}
++\text{ahorros}\\
+&+\text{antigüedad laboral}
++\text{vivienda}
++\text{otros planes de pago}.
+\end{aligned}
+\]
+
+Las variables categóricas se introdujeron mediante indicadores, dejando
+una categoría de referencia en cada grupo. Las referencias fueron:
+
+\begin{itemize}
+    \item estado de cuenta: \texttt{A11}, saldo menor que cero;
+
+    \item historial crediticio: \texttt{A30}, sin créditos previos o
+    todos pagados;
+
+    \item ahorros: \texttt{A61}, menos de \(100\) DM;
+
+    \item empleo actual: \texttt{A71}, desempleado;
+
+    \item vivienda: \texttt{A151}, alquilada;
+
+    \item otros planes de pago: \texttt{A141}, banco.
+\end{itemize}
+
+Los coeficientes se estimaron mediante máxima verosimilitud con
+\texttt{statsmodels}. El algoritmo convergió correctamente y el modelo
+contiene \(24\) coeficientes, incluido el intercepto.
+
+El pseudo-\(R^2\) de McFadden en entrenamiento fue:
+
+\[
+R^2_{\mathrm{McFadden}}
+=
+0.2202.
+\]
+
+Este valor no debe interpretarse como el porcentaje de variabilidad
+explicada y no es comparable directamente con el \(R^2\) de una
+regresión OLS. Se utiliza como una medida relativa de mejora frente a un
+modelo que solo contiene intercepto.
+
+\subsection{Interpretación mediante odds ratios}
+
+En una regresión logística, el coeficiente \(\beta_j\) representa un
+cambio en el logaritmo de las \textit{odds}. Para facilitar la
+interpretación se utiliza:
+
+\[
+\OR_j
+=
+\exp(\beta_j).
+\]
+
+Cuando \(\OR_j>1\), las \textit{odds} de mal crédito aumentan. Cuando
+\(\OR_j<1\), disminuyen. En ambos casos, la comparación mantiene
+constantes los demás predictores del modelo.
+
+Es importante distinguir \textit{odds} de probabilidad. Un aumento del
+\(20\,\%\) en las \textit{odds} no equivale necesariamente a un aumento
+de veinte puntos porcentuales en la probabilidad, porque el efecto sobre
+la probabilidad depende de su nivel inicial.
+
+\subsubsection{Predictores numéricos}
+
+La Tabla~\ref{tab:or-numericos} presenta los resultados de los
+predictores numéricos.
+
+\begin{table}[H]
+    \centering
+    \caption{Odds ratios de los predictores numéricos del modelo
+    logístico.}
+    \label{tab:or-numericos}
+
+    \begin{tabular}{
+        @{}
+        l
+        r
+        c
+        r
+        @{}
+    }
+        \toprule
+        Predictor
+        & OR
+        & IC del \(95\,\%\)
+        & \(p\) \\
+        \midrule
+
+        Duración
+        & \num{1.0390}
+        & \([1.0160,\;1.0625]\)
+        & \num{0.0008} \\
+
+        Logaritmo del monto
+        & \num{1.0658}
+        & \([0.7483,\;1.5181]\)
+        & \num{0.7238} \\
+
+        Tasa de la cuota
+        & \num{1.2283}
+        & \([1.0085,\;1.4959]\)
+        & \num{0.0409} \\
+
+        Edad
+        & \num{0.9972}
+        & \([0.9775,\;1.0172]\)
+        & \num{0.7798} \\
+
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+Manteniendo constantes las demás variables, cada mes adicional de
+duración se asocia con un aumento aproximado del \(3.9\,\%\) en las
+\textit{odds} de mal crédito:
+
+\[
+100(1.0390-1)=3.9\,\%.
+\]
+
+El intervalo de confianza se mantiene por encima de uno y el valor
+\(p\) es inferior a \(0.05\). La duración conserva, por tanto, una
+asociación positiva después de controlar por las demás características.
+
+Una unidad adicional en la escala de \variable{tasa_cuota} se asocia con
+un incremento aproximado del \(22.8\,\%\) en las \textit{odds}. Esta
+interpretación se refiere a un cambio entre niveles de una escala
+ordinal, no a un incremento de un punto porcentual del ingreso.
+
+En contraste, \variable{log_monto} deja de ser estadísticamente
+significativo:
+
+\[
+\OR=1.0658,
+\qquad
+p=0.7238.
+\]
+
+El monto mostró una diferencia marginal entre buenos y malos créditos,
+pero no aporta evidencia de una asociación independiente una vez que el
+modelo incorpora duración, liquidez, historial y otras variables. Parte
+de su señal inicial parece estar compartida con la duración del préstamo.
+
+La edad tampoco presenta evidencia de una asociación condicional dentro
+de esta especificación.
+
+\subsubsection{Categorías con evidencia estadística}
+
+La Tabla~\ref{tab:or-categoricos} resume las categorías cuyo intervalo
+del \(95\,\%\) no contiene el valor uno.
+
+\begin{table}[H]
+    \centering
+    \caption{Categorías con asociación estadísticamente significativa en
+    el modelo logístico.}
+    \label{tab:or-categoricos}
+
+    \footnotesize
+    \begin{tabularx}{\textwidth}{
+        @{}
+        >{\raggedright\arraybackslash}p{3.4cm}
+        >{\raggedright\arraybackslash}p{4.1cm}
+        >{\centering\arraybackslash}p{1.3cm}
+        >{\centering\arraybackslash}p{2.5cm}
+        >{\centering\arraybackslash}p{1.4cm}
+        @{}
+    }
+        \toprule
+        Variable
+        & Categoría frente a referencia
+        & OR
+        & IC del \(95\,\%\)
+        & \(p\) \\
+        \midrule
+
+        Ahorros
+        & \texttt{A64}: \(1000\) DM o más
+          frente a \texttt{A61}
+        & \num{0.1617}
+        & \([0.0349,\;0.7495]\)
+        & \num{0.0199} \\
+
+        Estado de cuenta
+        & \texttt{A14}: sin cuenta corriente
+          frente a \texttt{A11}
+        & \num{0.1803}
+        & \([0.1079,\;0.3014]\)
+        & \(<0.001\) \\
+
+        Historial crediticio
+        & \texttt{A34}: cuenta crítica u otros créditos
+          frente a \texttt{A30}
+        & \num{0.2413}
+        & \([0.0910,\;0.6403]\)
+        & \num{0.0043} \\
+
+        Estado de cuenta
+        & \texttt{A13}: saldo de \(200\) DM o más
+          frente a \texttt{A11}
+        & \num{0.3121}
+        & \([0.1384,\;0.7038]\)
+        & \num{0.0050} \\
+
+        Empleo actual
+        & \texttt{A74}: entre cuatro y siete años
+          frente a \texttt{A71}
+        & \num{0.4037}
+        & \([0.1632,\;0.9987]\)
+        & \num{0.0497} \\
+
+        Ahorros
+        & \texttt{A65}: desconocido o sin cuenta
+          frente a \texttt{A61}
+        & \num{0.4303}
+        & \([0.2421,\;0.7647]\)
+        & \num{0.0041} \\
+
+        Vivienda
+        & \texttt{A152}: propia
+          frente a \texttt{A151}
+        & \num{0.5868}
+        & \([0.3552,\;0.9694]\)
+        & \num{0.0374} \\
+
+        Estado de cuenta
+        & \texttt{A12}: saldo entre \(0\) y \(200\) DM
+          frente a \texttt{A11}
+        & \num{0.6041}
+        & \([0.3776,\;0.9665]\)
+        & \num{0.0355} \\
+
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+El estado de la cuenta corriente presenta un gradiente coherente respecto
+de la categoría de saldo negativo. Los perfiles con saldo positivo y los
+registros sin una cuenta corriente codificada muestran menores
+\textit{odds} que el grupo de referencia.
+
+El resultado de \texttt{A14} no implica que carecer de cuenta corriente
+sea, en términos generales, una condición financiera favorable. La
+comparación se realiza específicamente frente a solicitantes con saldo
+negativo. Además, la categoría histórica puede condensar perfiles
+heterogéneos que no pueden separarse con la documentación disponible.
+
+Los niveles altos de ahorro presentan menores \textit{odds} que el grupo
+con menos de \(100\) DM. La categoría \texttt{A65} combina ausencia de
+cuenta e información desconocida, por lo que su asociación debe
+interpretarse con cautela.
+
+La vivienda propia también se asocia con menores \textit{odds} frente a
+la vivienda alquilada. La antigüedad laboral de cuatro a siete años
+presenta una asociación protectora, aunque su valor \(p=0.0497\) y el
+límite superior del intervalo, próximo a uno, indican evidencia débil y
+sensible al redondeo.
+
+El resultado del historial \texttt{A34} debe leerse únicamente como un
+contraste condicional respecto de \texttt{A30}. La denominación histórica
+de las categorías no permite convertir directamente ese coeficiente en
+una regla general de aprobación.
+
+\begin{figure}[H]
+    \centering
+
+    \includegraphics[
+        width=0.92\textwidth
+    ]{
+        figura_07_odds_ratios_modelo_logistico.png
+    }
+
+    \caption{
+        Odds ratios e intervalos de confianza del \(95\,\%\) del modelo
+        logístico. La línea vertical representa ausencia de asociación
+        en la escala de odds ratios.
+    }
+
+    \label{fig:odds-ratios-logit}
+\end{figure}
+
+La Figura~\ref{fig:odds-ratios-logit} muestra simultáneamente la magnitud,
+dirección e incertidumbre de todos los términos. Los intervalos amplios
+de algunas categorías reflejan tamaños de grupo reducidos y menor
+precisión.
+
+\begin{hallazgo}
+La duración mantiene la asociación numérica más consistente con el mal
+crédito. El estado de cuenta, los ahorros, el historial, la vivienda y
+la carga de la cuota también aportan información condicional. El monto
+pierde significancia al controlar por estas variables.
+\end{hallazgo}
+
+\subsection{Capacidad discriminativa}
+
+La calidad de un modelo de riesgo no se resume en sus coeficientes. Es
+necesario evaluar si las probabilidades estimadas ordenan adecuadamente
+los casos de buen y mal crédito en observaciones no utilizadas durante
+el ajuste.
+
+La métrica principal independiente del umbral fue el área bajo la curva
+ROC:
+
+\[
+\AUC_{\mathrm{test}}
+=
+0.7740.
+\]
+
+Este valor puede interpretarse como la probabilidad de que, al elegir al
+azar un mal crédito y un buen crédito del conjunto de prueba, el modelo
+asigne una puntuación de riesgo mayor al primero.
+
+El resultado indica una capacidad discriminativa claramente superior al
+azar, aunque lejos de una separación perfecta. Persisten buenos y malos
+créditos con probabilidades similares.
+
+También se calculó el estadístico de Kolmogorov--Smirnov utilizado en
+\textit{credit scoring}:
+
+\[
+KS
+=
+\max_t
+\left[
+    \operatorname{TPR}(t)
+    -
+    \operatorname{FPR}(t)
+\right].
+\]
+
+El resultado fue:
+
+\[
+KS=0.4810,
+\]
+
+alcanzado alrededor del umbral:
+
+\[
+t=0.369.
+\]
+
+Este resultado muestra una separación apreciable entre las distribuciones
+de puntajes de ambas clases. Sin embargo, el umbral que maximiza KS no
+tiene por qué minimizar el costo económico de clasificación.
+
+La AUC evalúa capacidad de ordenamiento. No informa por sí sola si las
+probabilidades están calibradas, cuál es la rentabilidad de la política
+crediticia ni qué umbral debe utilizarse.
+
+\subsection{Validación cruzada del modelo logístico}
+
+La estabilidad se examinó mediante validación cruzada estratificada de
+cinco particiones. Dentro de cada partición, las variables categóricas se
+codificaron mediante indicadores y las numéricas se estandarizaron usando
+exclusivamente la información del conjunto de entrenamiento
+correspondiente.
+
+Esta construcción evita que el preprocesamiento utilice información de
+la partición de validación.
+
+Los resultados fueron:
+
+\begin{table}[H]
+    \centering
+    \caption{ROC--AUC por partición en la validación cruzada del modelo
+    logístico.}
+    \label{tab:cv-logit}
+
+    \begin{tabular}{cc}
+        \toprule
+        Partición & ROC--AUC \\
+        \midrule
+        1 & \num{0.7785} \\
+        2 & \num{0.7744} \\
+        3 & \num{0.8013} \\
+        4 & \num{0.7485} \\
+        5 & \num{0.7399} \\
+        \midrule
+        Media & \num{0.7685} \\
+        Desviación estándar & \num{0.0221} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+La media de validación fue:
+
+\[
+\overline{\AUC}_{\mathrm{CV}}
+=
+0.7685
+\pm
+0.0221.
+\]
+
+La proximidad entre la AUC de prueba y la media de validación cruzada:
+
+\[
+0.7740
+\approx
+0.7685
+\]
+
+indica un desempeño estable entre particiones. No se observa una brecha
+importante que sugiera sobreajuste bajo el diseño de evaluación
+utilizado.
+
+\subsection{Clasificación con el umbral estándar}
+
+El umbral convencional clasifica una observación como mal riesgo cuando:
+
+\[
+\widehat{p}_i
+\geq
+0.50.
+\]
+
+Con este umbral, la matriz de confusión del conjunto de prueba fue:
+
+\[
+\begin{array}{c|cc}
+ & \text{Predicho bueno} & \text{Predicho malo} \\
+\hline
+\text{Real bueno} & 180 & 30 \\
+\text{Real malo}  & 48  & 42
+\end{array}
+\]
+
+Por tanto:
+
+\[
+TN=180,
+\quad
+FP=30,
+\quad
+FN=48,
+\quad
+TP=42.
+\]
+
+Las métricas fueron:
+
+\[
+\operatorname{accuracy}
+=
+0.7400,
+\]
+
+\[
+\operatorname{precision}
+=
+0.5833,
+\]
+
+\[
+\operatorname{recall}
+=
+0.4667,
+\]
+
+\[
+F_1
+=
+0.5185,
+\]
+
+\[
+\operatorname{especificidad}
+=
+\frac{180}{180+30}
+=
+0.8571.
+\]
+
+Aunque la exactitud alcanza el \(74.0\,\%\), el modelo identifica menos
+de la mitad de los malos créditos. De los \(90\) casos de mal riesgo,
+\(48\) serían clasificados como buenos.
+
+Este resultado ilustra por qué la exactitud no puede utilizarse como
+único criterio: la política favorece la especificidad, pero conserva
+demasiados falsos negativos para una matriz de costos que penaliza ese
+error cinco veces más.
+
+\subsection{Selección del umbral bajo costos asimétricos}
+
+La matriz de costos asigna:
+
+\[
+C_{\mathrm{FN}}=5,
+\qquad
+C_{\mathrm{FP}}=1.
+\]
+
+Para una observación con probabilidad estimada \(p\), el costo esperado
+de clasificarla como buen riesgo es:
+
+\[
+C(\text{predecir bueno})
+=
+C_{\mathrm{FN}}p.
+\]
+
+El costo esperado de clasificarla como mal riesgo es:
+
+\[
+C(\text{predecir malo})
+=
+C_{\mathrm{FP}}(1-p).
+\]
+
+La decisión de menor costo clasifica como mal riesgo cuando:
+
+\[
+C_{\mathrm{FP}}(1-p)
+\leq
+C_{\mathrm{FN}}p.
+\]
+
+Al despejar \(p\):
+
+\[
+p
+\geq
+\frac{
+    C_{\mathrm{FP}}
+}{
+    C_{\mathrm{FP}}+C_{\mathrm{FN}}
+}.
+\]
+
+Por tanto, el umbral teórico es:
+
+\[
+t^{*}
+=
+\frac{1}{1+5}
+=
+\frac{1}{6}
+\approx
+0.1667.
+\]
+
+Esta regla supone que los costos representan adecuadamente el problema y
+que las probabilidades producidas por el modelo están razonablemente
+calibradas. La AUC por sí sola no permite comprobar esta segunda
+condición.
+
+El umbral se deriva de la matriz de costos y no de la búsqueda del mejor
+resultado en el conjunto de prueba. La curva empírica de costos se
+utiliza únicamente como diagnóstico posterior.
+
+\begin{figure}[H]
+    \centering
+
+    \includegraphics[
+        width=0.88\textwidth
+    ]{
+        figura_08_costo_vs_umbral.png
+    }
+
+    \caption{
+        Costo total de clasificación en el conjunto de prueba según el
+        umbral. Se muestran el umbral estándar, el umbral teórico
+        derivado de la matriz \(5:1\) y el mínimo empírico.
+    }
+
+    \label{fig:costo-umbral}
+\end{figure}
+
+El costo empírico mínimo se observa alrededor de:
+
+\[
+t_{\mathrm{emp}}=0.16,
+\]
+
+con un costo de \(157\) unidades. Este valor es prácticamente igual al
+umbral teórico \(0.1667\), cuyo costo es \(158\). La diferencia de una
+unidad no justifica reemplazar la regla derivada de costos por un umbral
+optimizado sobre la misma muestra de prueba.
+
+Seleccionar \(t_{\mathrm{emp}}\) como política final usando las etiquetas
+del test introduciría optimismo. En un desarrollo real, cualquier ajuste
+empírico del umbral debería efectuarse en validación y confirmarse sobre
+un conjunto final independiente.
+
+\subsection{Comparación de las políticas de decisión}
+
+La Tabla~\ref{tab:comparacion-umbrales} compara ambos puntos de
+operación.
+
+\begin{table}[H]
+    \centering
+    \caption{Desempeño del modelo logístico bajo los umbrales
+    \(0.50\) y \(1/6\).}
+    \label{tab:comparacion-umbrales}
+
+    \footnotesize
+    \resizebox{\textwidth}{!}{
+        \begin{tabular}{
+            @{}
+            c
+            r
+            r
+            r
+            r
+            r
+            r
+            r
+            r
+            r
+            r
+            @{}
+        }
+            \toprule
+            Umbral
+            & TP
+            & FP
+            & FN
+            & TN
+            & Accuracy
+            & Precisión
+            & Recall
+            & Especificidad
+            & \(F_1\)
+            & Costo \\
+            \midrule
+
+            \(0.50\)
+            & 42
+            & 30
+            & 48
+            & 180
+            & \num{0.7400}
+            & \num{0.5833}
+            & \num{0.4667}
+            & \num{0.8571}
+            & \num{0.5185}
+            & 270 \\
+
+            \(1/6\)
+            & 80
+            & 108
+            & 10
+            & 102
+            & \num{0.6067}
+            & \num{0.4255}
+            & \num{0.8889}
+            & \num{0.4857}
+            & \num{0.5755}
+            & 158 \\
+
+            \bottomrule
+        \end{tabular}
+    }
+\end{table}
+
+Al reducir el umbral:
+
+\begin{itemize}
+    \item los verdaderos positivos aumentan de \(42\) a \(80\);
+
+    \item los falsos negativos disminuyen de \(48\) a \(10\);
+
+    \item el recall aumenta de \(46.7\,\%\) a \(88.9\,\%\);
+
+    \item los falsos positivos aumentan de \(30\) a \(108\);
+
+    \item la precisión disminuye de \(58.3\,\%\) a \(42.6\,\%\);
+
+    \item la especificidad disminuye de \(85.7\,\%\) a \(48.6\,\%\);
+
+    \item la exactitud disminuye de \(74.0\,\%\) a \(60.7\,\%\);
+
+    \item el \(F_1\) aumenta de \(0.5185\) a \(0.5755\).
+\end{itemize}
+
+La política basada en costos es más conservadora. Identifica una mayor
+proporción de los créditos riesgosos a cambio de marcar también como
+riesgosos a más clientes que habrían sido buenos pagadores.
+
+La reducción de falsos negativos es:
+
+\[
+48-10=38.
+\]
+
+El costo evitado por estos casos es:
+
+\[
+38\times5=190.
+\]
+
+El incremento de falsos positivos es:
+
+\[
+108-30=78,
+\]
+
+con un costo adicional de \(78\). El ahorro neto es:
+
+\[
+190-78=112.
+\]
+
+En consecuencia, el costo total disminuye de:
+
+\[
+270
+\quad\text{a}\quad
+158,
+\]
+
+lo que equivale a una reducción de:
+
+\[
+\frac{270-158}{270}\times100
+=
+41.5\,\%.
+\]
+
+El costo medio por observación disminuye de \(0.9000\) a \(0.5267\).
+
+\begin{figure}[H]
+    \centering
+
+    \includegraphics[
+        width=\textwidth
+    ]{
+        figura_09_roc_y_matrices_confusion.png
+    }
+
+    \caption{
+        Curva ROC y matrices de confusión del modelo logístico con el
+        umbral estándar y el umbral derivado de la matriz de costos.
+    }
+
+    \label{fig:roc-matrices}
+\end{figure}
+
+La Figura~\ref{fig:roc-matrices} muestra que la curva ROC no cambia al
+modificar el umbral: la capacidad de ordenamiento pertenece al modelo.
+Lo que cambia es el punto de operación elegido sobre esa curva y, por
+tanto, el equilibrio entre falsos positivos y falsos negativos.
+
+\begin{hallazgo}
+El umbral \(0.50\) ofrece mayor exactitud y especificidad, pero omite más
+de la mitad de los malos créditos. Bajo la matriz de costos \(5:1\), el
+umbral \(1/6\) reduce el costo total en aproximadamente \(41.5\,\%\) al
+priorizar la detección del riesgo.
+\end{hallazgo}
+
+\subsection{Lectura operativa del modelo}
+
+Los resultados permiten diferenciar tres propiedades del sistema:
+
+\begin{enumerate}
+    \item \textbf{Asociación.} Los odds ratios identifican variables que
+    mantienen una relación condicional con la clase de riesgo.
+
+    \item \textbf{Discriminación.} La AUC y el KS evalúan la capacidad
+    para ordenar solicitantes desde menor hasta mayor riesgo.
+
+    \item \textbf{Decisión.} El umbral transforma las probabilidades en
+    una política de clasificación y determina el costo de los errores.
+\end{enumerate}
+
+Un modelo puede discriminar razonablemente y aun así producir una política
+inadecuada si se utiliza un umbral incompatible con los costos del
+negocio. De forma similar, un umbral conservador puede reducir pérdidas
+por falsos negativos, pero también aumentar rechazos innecesarios.
+
+La matriz \(5:1\) procede de la documentación del dataset y permite
+desarrollar el ejercicio de decisión. No representa una estimación
+económica completa de una institución. En una aplicación real, el costo
+de un falso negativo debería incorporar exposición al incumplimiento,
+pérdida dado incumplimiento, recuperación y costos de cobranza. El costo
+de un falso positivo debería considerar margen financiero perdido,
+costos de adquisición y valor futuro del cliente.
+
+La elección final también requeriría:
+
+\begin{itemize}
+    \item evaluar la calibración de las probabilidades;
+
+    \item validar temporalmente el modelo;
+
+    \item comprobar la estabilidad de las variables y categorías;
+
+    \item analizar equidad y posibles efectos adversos;
+
+    \item establecer una zona de revisión manual para probabilidades
+    cercanas al punto de corte.
+\end{itemize}
+
+Por tanto, el modelo debe considerarse una herramienta de apoyo para
+priorizar y revisar solicitudes, no un mecanismo autónomo listo para
+aprobar o rechazar créditos.
+
+\subsection{Conclusión del modelamiento}
+
+El modelo OLS mostró que la duración y la carga de la cuota explican una
+parte importante de la estructura del monto otorgado, con un desempeño
+estable en validación cruzada.
+
+La regresión logística alcanzó una AUC de \(0.7740\) en prueba y una AUC
+media de \(0.7685\) en validación cruzada. Esta consistencia indica una
+capacidad discriminativa estable y sin evidencia importante de
+sobreajuste bajo las particiones evaluadas.
+
+Los factores condicionales más relevantes fueron el estado de la cuenta,
+la duración, el historial crediticio, el nivel de ahorros, la vivienda y
+la carga de la cuota. El monto mostró una asociación marginal con el
+riesgo, pero perdió significancia al controlar simultáneamente por los
+demás predictores.
+
+Finalmente, la comparación de umbrales mostró que la política de decisión
+no debe basarse exclusivamente en la exactitud. Bajo el costo asimétrico
+\(5:1\), reducir el umbral a \(1/6\) aumenta sustancialmente la detección
+de malos créditos y reduce el costo total, aunque a cambio de más falsos
+positivos.
+
 
 % 10.1 Modelo OLS auxiliar.
 % 10.2 VIF y especificación.
