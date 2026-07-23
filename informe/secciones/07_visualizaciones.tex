@@ -1,6 +1,285 @@
 \section{Visualizaciones}
 \label{sec:visualizaciones}
 
+Las visualizaciones se diseñaron como parte del flujo reproducible del
+notebook y se exportaron a la carpeta
+\texttt{resultados/figuras}. Cada gráfico responde a una pregunta
+analítica concreta: describir la composición de la cartera, comparar
+grupos, examinar asociaciones, evaluar supuestos o comunicar el
+desempeño de los modelos.
+
+El informe contiene once figuras generadas directamente a partir de los
+datos y resultados computacionales. En esta sección se presentan las
+cinco visualizaciones descriptivas y exploratorias. Las seis figuras
+restantes se incorporan posteriormente junto con el análisis al que
+pertenecen: diagnóstico de regresión, interpretación del modelo
+logístico, selección del umbral y análisis bayesiano.
+
+Esta distribución evita convertir la sección en una galería
+desconectada del argumento estadístico y mantiene cada figura cerca de la
+evidencia que permite interpretar.
+
+\subsection{Criterios de presentación}
+
+Las figuras siguen cuatro criterios comunes:
+
+\begin{enumerate}
+    \item presentan títulos, ejes, unidades y categorías legibles;
+
+    \item utilizan una paleta consistente para distinguir el buen y el
+    mal riesgo;
+
+    \item evitan efectos decorativos que no aportan información, como
+    perspectivas tridimensionales o escalas innecesarias;
+
+    \item se exportan desde el notebook en formato PNG y alta resolución,
+    de modo que el resultado pueda reproducirse sin editar manualmente
+    el gráfico.
+\end{enumerate}
+
+Las visualizaciones deben interpretarse junto con las tablas y pruebas
+correspondientes. Un contraste visual puede sugerir una diferencia, pero
+no sustituye la cuantificación de incertidumbre ni una prueba de
+hipótesis.
+
+\subsection{Composición de la cartera}
+
+La Figura~\ref{fig:distribucion-clase-riesgo} muestra la distribución de
+la variable respuesta.
+
+\begin{figure}[H]
+    \centering
+
+    \includegraphics[
+        width=0.78\textwidth
+    ]{
+        figura_01_distribucion_clase_riesgo.png
+    }
+
+    \caption{
+        Distribución de los registros según la clase de riesgo
+        crediticio.
+    }
+
+    \label{fig:distribucion-clase-riesgo}
+\end{figure}
+
+La figura permite reconocer de inmediato que el buen riesgo es la clase
+mayoritaria. La muestra contiene \(700\) buenos créditos y \(300\)
+malos, equivalentes al \(70\,\%\) y \(30\,\%\), respectivamente.
+
+El gráfico no muestra un desbalance extremo, pero sí una diferencia
+suficiente para que una clasificación basada únicamente en la clase
+mayoritaria alcance una exactitud aparentemente elevada. Por esta razón,
+las métricas posteriores se orientan especialmente a la detección de los
+casos de mal crédito.
+
+\subsection{Tasa de mal crédito por propósito}
+
+La Figura~\ref{fig:tasa-proposito} compara la proporción observada de mal
+crédito entre los propósitos declarados del préstamo.
+
+\begin{figure}[H]
+    \centering
+
+    \includegraphics[
+        width=0.94\textwidth
+    ]{
+        figura_02_tasa_mal_credito_por_proposito.png
+    }
+
+    \caption{
+        Tasa observada de mal crédito según el propósito del préstamo.
+        La línea de referencia representa la tasa global de la cartera.
+    }
+
+    \label{fig:tasa-proposito}
+\end{figure}
+
+La comparación revela heterogeneidad entre categorías. Educación, Auto
+nuevo y Negocio se sitúan por encima de la tasa global, mientras que
+Radio/TV, Auto usado y Reentrenamiento presentan tasas menores.
+
+La altura de una barra debe interpretarse junto con el número de
+observaciones que la origina. Las categorías pequeñas pueden presentar
+porcentajes extremos debido a unos pocos registros. Por ello, el gráfico
+se utiliza como evidencia exploratoria y se complementa posteriormente
+con una prueba chi-cuadrado y una medida de tamaño de efecto.
+
+\subsection{Duración y monto según la clase}
+
+La Figura~\ref{fig:duracion-monto-clase} presenta la distribución de las
+dos variables contractuales principales según la clasificación de
+riesgo.
+
+\begin{figure}[H]
+    \centering
+
+    \includegraphics[
+        width=\textwidth
+    ]{
+        figura_03_duracion_monto_por_clase.png
+    }
+
+    \caption{
+        Distribución de la duración y el monto del crédito según la
+        clase de riesgo.
+    }
+
+    \label{fig:duracion-monto-clase}
+\end{figure}
+
+El panel de duración muestra un desplazamiento más claro entre las
+clases. Los casos de mal riesgo presentan una mediana superior y una
+mayor dispersión de los plazos. En el monto también se observan valores
+centrales más altos entre los malos créditos, aunque el solapamiento
+entre ambos grupos es considerable.
+
+Los valores alejados de las cajas no se eliminaron. Representan
+operaciones válidas y aportan información sobre la cola de las
+distribuciones. Su presencia explica por qué las comparaciones se
+complementan con medidas robustas y pruebas basadas en rangos.
+
+\subsection{Asociaciones monotónicas}
+
+La Figura~\ref{fig:correlaciones-spearman} resume las correlaciones de
+Spearman entre las variables numéricas, las escalas ordinales y la
+respuesta binaria.
+
+\begin{figure}[H]
+    \centering
+
+    \includegraphics[
+        width=0.92\textwidth
+    ]{
+        figura_04_correlaciones_spearman.png
+    }
+
+    \caption{
+        Matriz de correlaciones de Spearman entre las variables
+        cuantitativas y ordinales del análisis.
+    }
+
+    \label{fig:correlaciones-spearman}
+\end{figure}
+
+La asociación más visible se presenta entre duración y monto. Los
+créditos de mayor importe tienden a distribuirse en plazos más largos.
+Esta relación no implica redundancia completa, pero justifica revisar la
+multicolinealidad antes de interpretar los coeficientes de regresión.
+
+Respecto de la variable respuesta, la duración presenta la asociación
+monotónica marginal más alta. Las relaciones del monto y la edad con el
+mal crédito son menores. Estas correlaciones no incluyen la información
+de las variables categóricas ni controlan simultáneamente los demás
+predictores, por lo que no reemplazan el análisis multivariable.
+
+\subsection{Ajuste paramétrico del monto}
+
+La Figura~\ref{fig:ajuste-mle-monto} compara visualmente los ajustes
+Lognormal y Gamma estimados mediante máxima verosimilitud.
+
+\begin{figure}[H]
+    \centering
+
+    \includegraphics[
+        width=\textwidth
+    ]{
+        figura_05_ajuste_mle_monto.png
+    }
+
+    \caption{
+        Ajuste paramétrico del monto del crédito. El panel izquierdo
+        compara las densidades Lognormal y Gamma con el histograma
+        observado; el panel derecho evalúa la normalidad aproximada del
+        logaritmo del monto mediante un gráfico Q--Q.
+    }
+
+    \label{fig:ajuste-mle-monto}
+\end{figure}
+
+La distribución Lognormal reproduce mejor la concentración central y la
+cola derecha del monto que la distribución Gamma. Esta lectura visual es
+consistente con la comparación mediante AIC desarrollada en la
+Sección~\ref{sec:descriptiva}.
+
+El gráfico Q--Q muestra un comportamiento aproximadamente lineal en la
+zona central de \(\log(\variable{monto})\), acompañado de desviaciones en
+las colas. En consecuencia, la transformación logarítmica mejora la
+representación general de la variable, pero no elimina completamente la
+influencia de los montos extremos.
+
+\subsection{Ubicación de las visualizaciones especializadas}
+
+Las seis figuras restantes se presentan en las secciones donde se
+desarrolla su interpretación. La
+Tabla~\ref{tab:mapa-visualizaciones} resume esta organización.
+
+\begin{table}[H]
+    \centering
+
+    \caption{
+        Ubicación de las visualizaciones especializadas dentro del
+        informe.
+    }
+
+    \label{tab:mapa-visualizaciones}
+
+    \begin{tabularx}{0.96\textwidth}{
+        @{}
+        >{\centering\arraybackslash}p{1.2cm}
+        >{\raggedright\arraybackslash}p{5.3cm}
+        X
+        @{}
+    }
+        \toprule
+        Figura
+        & Archivo
+        & Sección de interpretación \\
+        \midrule
+
+        6
+        & \texttt{figura\_06\_diagnosticos\_modelo\_ols.png}
+        & Diagnósticos canónicos del modelo OLS,
+          Sección~\ref{sec:regresion}. \\
+
+        7
+        & \texttt{figura\_07\_odds\_ratios\_modelo\_logistico.png}
+        & Magnitud y dirección de los efectos del modelo logístico,
+          Sección~\ref{sec:regresion}. \\
+
+        8
+        & \texttt{figura\_08\_costo\_vs\_umbral.png}
+        & Selección del punto de corte bajo costos asimétricos,
+          Sección~\ref{sec:regresion}. \\
+
+        9
+        & \texttt{figura\_09\_roc\_y\_matrices\_confusion.png}
+        & Discriminación y comparación operativa de umbrales,
+          Sección~\ref{sec:regresion}. \\
+
+        10
+        & \texttt{figura\_10\_modelo\_beta\_binomial.png}
+        & Sensibilidad de la posterior a la elección del prior,
+          Sección~\ref{sec:bayes}. \\
+
+        11
+        & \texttt{figura\_11\_metropolis-hastings.png}
+        & Trazas, distribución posterior y diagnóstico del sampler,
+          Sección~\ref{sec:bayes}. \\
+
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+En conjunto, las once figuras cubren los cuatro bloques del trabajo:
+descripción de la cartera, inferencia, modelamiento predictivo y análisis
+bayesiano. Todas proceden de la misma ejecución reproducible del
+notebook y mantienen correspondencia con las tablas y resultados
+numéricos del informe.
+
+\FloatBarrier
+
 % Contenido previsto:
 % - Criterios de diseño y legibilidad.
 % - Mapa de las 11 figuras del notebook.
