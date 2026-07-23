@@ -49,3 +49,5 @@ informe/build/*
 # Editores
 *.swp
 *.swo
+# Firmas personales: solo para compilación local
+informe/firmas/

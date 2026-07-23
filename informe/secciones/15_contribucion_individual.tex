@@ -1,28 +1,158 @@
-\section{Declaración individual de contribución}
-\label{sec:contribucion}
+\section{Declaración de contribución individual}
+\label{sec:contribuciones}
+
+El trabajo fue desarrollado de manera colaborativa por los tres
+integrantes del Grupo 5. Para organizar las responsabilidades, el
+análisis se dividió en tres bloques temáticos coherentes: preparación y
+exploración de los datos; inferencia frecuentista y regresión lineal; y
+modelamiento predictivo e inferencia bayesiana.
+
+La distribución porcentual representa la responsabilidad principal
+asumida por cada integrante sobre el desarrollo, validación y
+documentación de su bloque. Esta asignación no excluye la revisión
+cruzada ni la participación conjunta en la interpretación de los
+resultados.
+
+La contribución total declarada es:
+
+\[
+40\,\% + 30\,\% + 30\,\% = 100\,\%.
+\]
+
+La Tabla~\ref{tab:contribuciones-individuales} resume la distribución
+general de responsabilidades.
 
 \begin{table}[H]
     \centering
-    \caption{Declaración individual de contribución del Grupo 5.}
-    \label{tab:contribucion}
+    \caption{Distribución de las contribuciones individuales.}
+    \label{tab:contribuciones-individuales}
+
+    \small
     \begin{tabularx}{\textwidth}{
         @{}
-        >{\raggedright\arraybackslash}p{3.6cm}
+        >{\raggedright\arraybackslash}p{3.1cm}
+        >{\raggedright\arraybackslash}p{2.7cm}
         X
-        >{\centering\arraybackslash}p{1.8cm}
-        >{\centering\arraybackslash}p{2.5cm}
         @{}
     }
         \toprule
-        Miembro & Tareas asumidas & Contribución & Firma \\
+        Integrante
+        & Bloque y participación
+        & Responsabilidades principales \\
         \midrule
-        \IntegranteUno & Por completar & \rule{1.0cm}{0.4pt}\,\% & \\
-        \IntegranteDos & Por completar & \rule{1.0cm}{0.4pt}\,\% & \\
-        \IntegranteTres & Por completar & \rule{1.0cm}{0.4pt}\,\% & \\
+
+        Henry Sánchez Alvarado
+        &
+        \textbf{Bloque 1}
+
+        Preparación, exploración e incertidumbre
+
+        \textbf{40\,\%}
+        &
+        Organización general del flujo reproducible; documentación y
+        carga del dataset; elaboración del diccionario de variables;
+        validación, limpieza y recodificación de la respuesta; análisis
+        exploratorio y estadística descriptiva; ajuste paramétrico del
+        monto; desarrollo de las visualizaciones iniciales; estimación
+        de intervalos de confianza mediante Wilson, bootstrap y
+        distribución \(t\); integración de la estructura general del
+        informe y revisión de la correspondencia entre notebook,
+        resultados e informe.
+        \\
+
+        \addlinespace
+
+        Armando Castro Chaupis
+        &
+        \textbf{Bloque 2}
+
+        Inferencia frecuentista y regresión lineal
+
+        \textbf{30\,\%}
+        &
+        Formulación y evaluación de las hipótesis frecuentistas;
+        aplicación de la prueba chi-cuadrado y cálculo de la V de
+        Cramér; comparación de la duración mediante la prueba de Welch y
+        la \(d\) de Cohen; comparación del monto mediante
+        Mann--Whitney y tamaños de efecto; especificación e
+        interpretación del modelo OLS; evaluación de multicolinealidad,
+        normalidad, homocedasticidad e influencia; comparación con
+        errores robustos HC3 y validación cruzada del modelo lineal.
+        \\
+
+        \addlinespace
+
+        Alex Segura Núñez
+        &
+        \textbf{Bloque 3}
+
+        Predicción, costos e inferencia bayesiana
+
+        \textbf{30\,\%}
+        &
+        Especificación y ajuste de la regresión logística; preparación
+        de la partición estratificada de entrenamiento y prueba;
+        interpretación de coeficientes y odds ratios; evaluación mediante
+        ROC--AUC, KS, precisión, recall, especificidad, F1 y matrices de
+        confusión; validación cruzada del clasificador; comparación de
+        los umbrales \(0.50\) y \(1/6\) bajo la matriz de costos \(5:1\);
+        desarrollo del modelo Beta--Binomial; análisis de sensibilidad
+        al prior; implementación y diagnóstico de
+        Metropolis--Hastings; integración de los resultados predictivos
+        y bayesianos.
+        \\
+
         \bottomrule
     \end{tabularx}
 \end{table}
 
-Declaramos que todos los miembros conocen y entienden la totalidad del
-proyecto, incluido el análisis bayesiano, y son capaces de explicar
-cualquier sección durante la sustentación oral.
+\subsection{Responsabilidades compartidas}
+
+Aunque cada integrante asumió la responsabilidad principal de un bloque,
+el trabajo no se desarrolló de manera aislada. Los tres miembros
+participaron conjuntamente en:
+
+\begin{itemize}
+    \item definición y revisión de la pregunta de investigación;
+
+    \item discusión de los supuestos estadísticos y del alcance del
+    análisis;
+
+    \item interpretación de los resultados desde la perspectiva del
+    riesgo crediticio;
+
+    \item revisión de la coherencia entre el notebook, las tablas CSV,
+    las figuras y el informe;
+
+    \item revisión crítica de las conclusiones, limitaciones y
+    recomendaciones;
+
+    \item preparación de la exposición y validación de la versión final
+    del proyecto.
+\end{itemize}
+
+\subsection{Responsabilidad académica}
+
+Cada integrante revisó el bloque bajo su responsabilidad y confirmó que
+comprende:
+
+\begin{itemize}
+    \item la procedencia, estructura y codificación de los datos;
+
+    \item las transformaciones y variables derivadas utilizadas;
+
+    \item los métodos estadísticos y computacionales implementados;
+
+    \item la interpretación de los coeficientes, intervalos y métricas;
+
+    \item los supuestos y limitaciones de las pruebas y modelos;
+
+    \item la diferencia entre asociación estadística, predicción y
+    causalidad.
+\end{itemize}
+
+La responsabilidad académica sobre el contenido, los resultados, las
+interpretaciones y las conclusiones corresponde exclusivamente a los
+integrantes del Grupo 5. El uso de herramientas computacionales y de
+inteligencia artificial se documenta en el
+Anexo~\ref{anexo:uso-ia}.

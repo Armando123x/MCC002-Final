@@ -16,16 +16,19 @@
 \pagenumbering{roman}
 \input{resumen}
 
+\clearpage
+\phantomsection
 \tableofcontents
-\clearpage
 
-\listoffigures
+\clearpage
+\phantomsection
 \addcontentsline{toc}{section}{Índice de figuras}
-\clearpage
+\listoffigures
 
-\listoftables
-\addcontentsline{toc}{section}{Índice de tablas}
 \clearpage
+\phantomsection
+\addcontentsline{toc}{section}{Índice de tablas}
+\listoftables
 
 \pagenumbering{arabic}
 \setcounter{page}{1}
@@ -55,7 +58,6 @@
 \clearpage
 \appendix
 \input{anexos/A_declaracion_uso_ia}
-\input{anexos/B_resultados_complementarios}
-\input{anexos/C_reproducibilidad}
+\input{anexos/B_reproducibilidad}
 
 \end{document}

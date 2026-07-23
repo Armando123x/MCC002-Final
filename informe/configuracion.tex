@@ -60,6 +60,14 @@
 \usepackage{subcaption}
 \usepackage[section]{placeins}
 
+% Columnas reutilizables para tablas
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}p{#1}}
+
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+
 \graphicspath{
     {../resultados/figuras/}
 }

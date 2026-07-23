@@ -1,0 +1,175 @@
+\section{Reproducibilidad}
+\label{anexo:reproducibilidad}
+
+Este anexo resume las condiciones necesarias para reproducir el análisis
+estadístico, las tablas, las figuras y el informe. La fuente computacional
+principal del proyecto es:
+
+\begin{center}
+    \texttt{notebook/MCC002\_Grupo5\_Notebook.ipynb}
+\end{center}
+
+El notebook utiliza rutas relativas, fija las semillas de los procedimientos
+aleatorios y genera automáticamente los resultados almacenados en las
+carpetas \texttt{resultados/figuras} y \texttt{resultados/tablas}.
+
+\subsection{Entorno computacional}
+
+El análisis fue desarrollado en Windows 10 con Python 3.12.10. Las
+dependencias completas se registran en el archivo
+\texttt{requirements.txt}. Las principales versiones empleadas fueron:
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Componente & Versión \\
+\midrule
+Python & 3.12.10 \\
+NumPy & 2.4.6 \\
+pandas & 3.0.3 \\
+SciPy & 1.17.1 \\
+statsmodels & 0.14.6 \\
+scikit-learn & 1.9.0 \\
+seaborn & 0.13.2 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+No se requiere una GPU. El análisis puede ejecutarse completamente en CPU.
+
+\subsection{Datos y configuración}
+
+El proyecto utiliza el conjunto
+\textit{Statlog German Credit Data}. El notebook busca inicialmente:
+
+\begin{center}
+    \texttt{data/german.data}
+\end{center}
+
+Si el archivo no se encuentra disponible, se descarga desde el UCI Machine
+Learning Repository. Después de la carga se verifica que el conjunto
+contenga \(1000\) observaciones, \(20\) predictores y una variable de clase,
+sin valores faltantes ni filas completamente duplicadas.
+
+La respuesta se recodifica como:
+
+\[
+\text{mal crédito}
+=
+\begin{cases}
+0, & \text{si la clase original es }1,\\
+1, & \text{si la clase original es }2.
+\end{cases}
+\]
+
+La transformación produce \(700\) observaciones de buen riesgo y \(300\)
+de mal riesgo.
+
+La semilla global utilizada es:
+
+\[
+\texttt{SEED}=2026.
+\]
+
+Esta semilla controla el bootstrap, la partición de entrenamiento y prueba,
+la validación cruzada y el algoritmo Metropolis--Hastings.
+
+\subsection{Ejecución del notebook}
+
+Desde la raíz del repositorio, el entorno puede reconstruirse en PowerShell
+mediante:
+
+\begin{verbatim}
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+\end{verbatim}
+
+El notebook puede ejecutarse desde Visual Studio Code mediante
+\textit{Run All} o automáticamente con:
+
+\begin{verbatim}
+python -m jupyter nbconvert `
+  --to notebook `
+  --execute notebook/MCC002_Grupo5_Notebook.ipynb `
+  --output MCC002_Grupo5_Notebook_ejecutado.ipynb `
+  --output-dir notebook `
+  --ExecutePreprocessor.timeout=0
+\end{verbatim}
+
+La ejecución debe finalizar sin excepciones y sin modificar manualmente las
+salidas entre celdas.
+
+\subsection{Resultados esperados}
+
+La ejecución completa debe generar:
+
+\begin{itemize}
+    \item once figuras PNG en \texttt{resultados/figuras};
+    \item cuatro tablas CSV en \texttt{resultados/tablas};
+    \item las estimaciones, pruebas y métricas utilizadas en el informe.
+\end{itemize}
+
+Los principales valores de control son:
+
+\begin{center}
+\begin{tabular}{p{7.2cm}p{3.6cm}}
+\toprule
+Control & Resultado esperado \\
+\midrule
+Dimensiones del dataset & \(1000\times21\) \\
+Valores faltantes & \(0\) \\
+Buenos créditos & \(700\) \\
+Malos créditos & \(300\) \\
+Tasa global de mal crédito & \(0.300\) \\
+IC de Wilson del \(95\,\%\) & \([0.2724,\;0.3291]\) \\
+AUC en prueba & \(0.7740\) \\
+AUC media en validación cruzada & \(0.7685\) \\
+Costo con umbral \(0.50\) & \(270\) \\
+Costo con umbral \(1/6\) & \(158\) \\
+Aceptación de Metropolis--Hastings & \(25.68\,\%\) \\
+Media posterior de duración & \(0.04084\) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Pueden presentarse pequeñas diferencias numéricas cuando se utilizan
+versiones distintas de las bibliotecas, pero las conclusiones y los valores
+redondeados deben mantenerse estables.
+
+\subsection{Compilación del informe}
+
+El informe se compila desde la carpeta \texttt{informe} mediante:
+
+\begin{verbatim}
+.\limpiar.ps1
+.\compilar.ps1
+\end{verbatim}
+
+El documento resultante debe generarse en:
+
+\begin{center}
+    \texttt{informe/build/main.pdf}
+\end{center}
+
+Después de la compilación debe verificarse:
+
+\begin{verbatim}
+$LASTEXITCODE
+\end{verbatim}
+
+El valor esperado es \(0\). También debe comprobarse que no existan citas
+sin resolver, referencias mostradas como \texttt{??} ni errores fatales en
+\texttt{build/main.log}.
+
+\subsection{Criterio de reproducibilidad}
+
+El proyecto se considera reproducible porque utiliza rutas relativas,
+documenta las dependencias, fija las semillas, descarga o valida los datos,
+genera automáticamente sus artefactos y permite reconstruir el informe
+mediante scripts de compilación.
+
+La reproducibilidad garantiza que los cálculos puedan repetirse bajo los
+mismos datos y supuestos. No implica que los resultados sean directamente
+generalizables a otras instituciones, periodos o poblaciones crediticias.
