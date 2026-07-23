@@ -51,3 +51,4 @@ informe/build/*
 *.swo
 # Firmas personales: solo para compilación local
 informe/firmas/
+data/german.data
