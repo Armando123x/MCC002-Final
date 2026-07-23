@@ -1,5 +1,572 @@
 \section{Interpretación integrada}
-\label{sec:interpretacion}
+\label{sec:interpretacion-integrada}
+
+La pregunta central del trabajo fue:
+
+\begin{quote}
+    \itshape
+    ¿Qué factores explican la probabilidad de que un solicitante sea
+    clasificado como mal riesgo crediticio?
+\end{quote}
+
+La evidencia obtenida muestra que el riesgo crediticio no se concentra
+en una única característica. La clasificación depende de una combinación
+entre las condiciones del préstamo, la liquidez disponible, los
+antecedentes financieros y algunos indicadores de estabilidad económica.
+
+El término ``explican'' se utiliza en un sentido estadístico y
+predictivo. Los resultados permiten identificar variables asociadas con
+cambios en la probabilidad estimada de mal crédito, pero no demuestran
+que esas variables causen directamente el resultado observado.
+
+\subsection{Respuesta a la pregunta central}
+
+Dentro de las variables numéricas, la duración del préstamo constituye
+el factor con la asociación más consistente. Los créditos clasificados
+como malos presentan plazos mayores en el análisis descriptivo, una
+diferencia estandarizada cercana a moderada en la comparación
+frecuentista y un coeficiente positivo en la regresión logística.
+
+En el modelo multivariable, cada mes adicional de duración se asocia con
+un incremento aproximado del \(3.9\,\%\) en las \textit{odds} de mal
+crédito, manteniendo constantes los demás predictores. El análisis
+bayesiano confirmó este resultado:
+
+\[
+\operatorname{E}
+\left[
+    \beta_{\mathrm{dur}}
+    \mid
+    \mathrm{datos}
+\right]
+=
+0.04084,
+\]
+
+\[
+\operatorname{ICr}_{95\,\%}
+=
+[0.01902,\;0.06275],
+\]
+
+y:
+
+\[
+\Pr
+\left(
+    \beta_{\mathrm{dur}}>0
+    \mid
+    \mathrm{datos}
+\right)
+\approx
+1.
+\]
+
+Por tanto, la duración es el principal factor numérico asociado con un
+mayor riesgo dentro de la especificación utilizada.
+
+La carga de la cuota también mantiene una asociación condicional
+relevante. Una unidad adicional en la escala ordinal de
+\variable{tasa_cuota} se relaciona con un aumento aproximado del
+\(22.8\,\%\) en las \textit{odds} de mal crédito:
+
+\[
+\mathrm{OR}=1.2283.
+\]
+
+Este resultado es coherente con la interpretación financiera de que una
+mayor proporción de recursos comprometida en el pago puede reducir el
+margen disponible frente a gastos inesperados. No obstante, la variable
+representa niveles ordinales y no porcentajes exactos del ingreso.
+
+Entre las variables categóricas, el estado de la cuenta corriente, el
+nivel de ahorros, algunas categorías del historial crediticio, la
+antigüedad laboral y el tipo de vivienda aportan información adicional.
+En términos generales, los perfiles con mejores señales de liquidez o
+estabilidad presentan menores \textit{odds} de mal crédito respecto de
+sus categorías de referencia.
+
+La interpretación de estas categorías requiere cautela. Algunos códigos
+históricos combinan situaciones diferentes y ciertas asociaciones pueden
+parecer contraintuitivas debido a la categoría utilizada como referencia.
+En consecuencia, no deben convertirse directamente en reglas generales
+de aprobación o rechazo.
+
+\subsection{Diferencia entre asociación marginal y condicional}
+
+Uno de los resultados más importantes del análisis es la diferencia entre
+una asociación observada por separado y una asociación que permanece al
+controlar por otras variables.
+
+El monto del crédito mostró inicialmente:
+
+\begin{itemize}
+    \item valores medios y medianos superiores entre los malos créditos;
+
+    \item una diferencia estadísticamente significativa mediante
+    Mann--Whitney;
+
+    \item una asociación positiva, aunque pequeña, con la clase de
+    riesgo.
+\end{itemize}
+
+Sin embargo, dentro de la regresión logística:
+
+\[
+\mathrm{OR}_{\log(\mathrm{monto})}
+=
+1.0658,
+\]
+
+con:
+
+\[
+p=0.7238.
+\]
+
+El intervalo del \(95\,\%\) contiene el valor uno. Por tanto, no existe
+evidencia suficiente de una asociación independiente del monto después
+de considerar duración, estado de cuenta, historial, ahorros, carga de
+la cuota y vivienda.
+
+Este cambio es coherente con la relación observada entre monto y
+duración:
+
+\[
+\rho_{\mathrm{Spearman}}
+\approx
+0.62.
+\]
+
+Los créditos de mayor monto tienden a concederse por plazos más largos.
+En consecuencia, parte de la asociación marginal del monto con el riesgo
+parece estar capturada por la duración y por otras condiciones
+financieras.
+
+La edad presenta un comportamiento parecido. Los malos créditos
+corresponden descriptivamente a solicitantes algo más jóvenes, pero la
+edad no conserva evidencia estadística dentro del modelo logístico:
+
+\[
+\mathrm{OR}_{\mathrm{edad}}
+=
+0.9972,
+\qquad
+p=0.7798.
+\]
+
+Por tanto, ni el monto ni la edad deben considerarse factores
+condicionales principales en la especificación final.
+
+\subsection{Propósito del préstamo como factor de segmentación}
+
+La prueba chi-cuadrado identificó una asociación entre el propósito y la
+clase de riesgo:
+
+\[
+\chi^2(9)
+=
+33.356,
+\qquad
+p=0.00012.
+\]
+
+La magnitud estimada mediante V de Cramér fue:
+
+\[
+V=0.183.
+\]
+
+Esto indica una asociación global estadísticamente significativa, pero
+pequeña. Algunos propósitos presentan tasas observadas superiores al
+promedio, mientras que otros muestran tasas menores.
+
+Sin embargo, el propósito debe entenderse principalmente como una
+variable de segmentación. Las tasas de algunas categorías se basan en
+pocos registros y pueden ser inestables. Además, la prueba global no
+controla por duración, monto, liquidez ni situación financiera.
+
+Por ello, el propósito aporta contexto sobre el tipo de operación, pero
+no constituye por sí solo una base suficiente para determinar el riesgo
+individual de un solicitante.
+
+\subsection{Síntesis de la evidencia por factor}
+
+La Tabla~\ref{tab:evidencia-integrada-factores} resume la relación entre
+los principales factores y el riesgo.
+
+\begin{table}[H]
+    \centering
+    \caption{Síntesis integrada de los factores asociados con el riesgo
+    crediticio.}
+    \label{tab:evidencia-integrada-factores}
+
+    \small
+    \begin{tabularx}{\textwidth}{
+        @{}
+        >{\raggedright\arraybackslash}p{2.7cm}
+        >{\raggedright\arraybackslash}p{4.1cm}
+        >{\raggedright\arraybackslash}p{4.0cm}
+        X
+        @{}
+    }
+        \toprule
+        Factor
+        & Evidencia marginal
+        & Evidencia condicional
+        & Interpretación integrada \\
+        \midrule
+
+        Duración
+        & Los malos créditos tienen plazos mayores; \(d=0.480\).
+        & \(\mathrm{OR}=1.0390\) por mes; posterior completamente
+          concentrada en valores positivos.
+        & Factor numérico más consistente del análisis. \\
+
+        Tasa de la cuota
+        & Mayor presencia de niveles altos entre los malos créditos.
+        & \(\mathrm{OR}=1.2283\), con intervalo por encima de uno.
+        & Una mayor carga financiera se asocia con mayor riesgo. \\
+
+        Monto
+        & Diferencia significativa entre clases; efecto pequeño.
+        & \(\mathrm{OR}=1.0658\), \(p=0.7238\).
+        & Su asociación marginal no permanece después del control
+          multivariable. \\
+
+        Estado de cuenta
+        & Diferencias visibles entre perfiles de liquidez.
+        & Varias categorías presentan \(\mathrm{OR}<1\) frente al saldo
+          negativo.
+        & La liquidez corriente aporta una señal condicional importante. \\
+
+        Ahorros
+        & Los perfiles con mayor ahorro muestran menor riesgo observado.
+        & \texttt{A64}: \(\mathrm{OR}=0.1617\) frente a menos de
+          \(100\) DM.
+        & Una mayor capacidad de ahorro se asocia con menor riesgo. \\
+
+        Historial crediticio
+        & Las tasas cambian entre categorías.
+        & Algunas categorías presentan asociaciones significativas
+          respecto de \texttt{A30}.
+        & Aporta información, pero depende fuertemente de la referencia
+          y de la codificación histórica. \\
+
+        Vivienda
+        & La distribución de las clases varía según el régimen de
+          vivienda.
+        & Vivienda propia:
+          \(\mathrm{OR}=0.5868\) frente al alquiler.
+        & La estabilidad residencial se asocia con menores
+          \textit{odds}. \\
+
+        Propósito
+        & Asociación global significativa, \(V=0.183\).
+        & No se utilizó como predictor en la especificación logística
+          final.
+        & Útil para segmentación, con capacidad individual limitada. \\
+
+        Edad
+        & Los malos créditos son ligeramente más jóvenes.
+        & \(\mathrm{OR}=0.9972\), \(p=0.7798\).
+        & La diferencia marginal no persiste en el modelo conjunto. \\
+
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\subsection{Respuesta a las preguntas secundarias}
+
+Las preguntas específicas del trabajo pueden responderse de manera
+integrada.
+
+\subsubsection{¿Cuál es la proporción global de malos créditos?}
+
+La proporción observada fue:
+
+\[
+\widehat{p}
+=
+0.300.
+\]
+
+El intervalo de Wilson del \(95\,\%\) fue:
+
+\[
+[0.2724,\;0.3291],
+\]
+
+mientras que el intervalo bootstrap fue:
+
+\[
+[0.2720,\;0.3290].
+\]
+
+El modelo Beta--Binomial produjo intervalos creíbles prácticamente
+idénticos bajo los tres priors evaluados. La tasa se estima, por tanto,
+cerca del \(30\,\%\), con una incertidumbre aproximada de tres puntos
+porcentuales a cada lado.
+
+\subsubsection{¿La tasa difiere según el propósito?}
+
+Sí. La prueba chi-cuadrado rechazó la hipótesis de independencia entre
+propósito y clase de riesgo. Sin embargo, la V de Cramér de \(0.183\)
+indica que la magnitud de la asociación es pequeña.
+
+El propósito permite reconocer segmentos con tasas diferentes, pero no
+explica por sí solo la clasificación individual.
+
+\subsubsection{¿La duración y el monto difieren entre las clases?}
+
+Ambas variables presentan diferencias marginales.
+
+Los malos créditos tienen una duración media aproximadamente
+\(5.65\) meses mayor, con un tamaño de efecto:
+
+\[
+d=0.480.
+\]
+
+El monto también tiende a ser mayor, pero su tamaño de efecto es pequeño:
+
+\[
+r_{\mathrm{rb}}
+=
+0.110.
+\]
+
+La diferencia esencial aparece en el análisis multivariable: la duración
+mantiene su asociación, mientras que el monto pierde significancia.
+
+\subsubsection{¿Qué variables están asociadas con mayor riesgo?}
+
+La evidencia conjunta identifica como señales principales:
+
+\begin{itemize}
+    \item mayor duración del crédito;
+
+    \item mayor nivel de carga de la cuota;
+
+    \item estado de cuenta menos favorable, especialmente la categoría
+    de saldo negativo utilizada como referencia;
+
+    \item menores niveles de ahorro;
+
+    \item determinados perfiles del historial crediticio;
+
+    \item menor estabilidad residencial frente a la vivienda propia.
+\end{itemize}
+
+La interpretación debe realizarse sobre el perfil completo. Ninguna
+variable ofrece una separación perfecta entre buenos y malos créditos.
+
+\subsubsection{¿Cómo cambia la clasificación al modificar el umbral?}
+
+Con el umbral convencional:
+
+\[
+t=0.50,
+\]
+
+el modelo obtiene una exactitud de \(74.0\,\%\), pero identifica solo el
+\(46.7\,\%\) de los malos créditos.
+
+Bajo la relación de costos \(5:1\), el umbral teórico es:
+
+\[
+t^{*}
+=
+\frac{1}{6}
+\approx
+0.1667.
+\]
+
+Al aplicarlo, el recall aumenta a:
+
+\[
+88.9\,\%,
+\]
+
+y los falsos negativos disminuyen de \(48\) a \(10\). A cambio, los
+falsos positivos aumentan y la exactitud disminuye al \(60.7\,\%\).
+
+El costo total se reduce de:
+
+\[
+270
+\quad\text{a}\quad
+158,
+\]
+
+lo que representa una disminución aproximada del:
+
+\[
+41.5\,\%.
+\]
+
+La modificación del umbral no mejora la capacidad discriminativa del
+modelo. Cambia la política de decisión y el equilibrio entre los dos
+tipos de error.
+
+\subsection{Coherencia entre los enfoques estadísticos}
+
+Los resultados frecuentistas y bayesianos presentan una alta
+consistencia.
+
+Para la tasa global de mal crédito:
+
+\[
+\widehat{p}_{\mathrm{frecuentista}}
+=
+0.3000,
+\]
+
+mientras que, con el prior uniforme:
+
+\[
+\widehat{p}_{\mathrm{MAP}}
+=
+0.3000.
+\]
+
+El intervalo de Wilson y el intervalo creíble bajo
+\(\operatorname{Beta}(1,1)\) coinciden numéricamente al nivel de redondeo:
+
+\[
+[0.2724,\;0.3291].
+\]
+
+Para la duración, el estimador frecuentista fue:
+
+\[
+\widehat{\beta}_{\mathrm{dur,MLE}}
+=
+0.03825,
+\]
+
+y la media posterior:
+
+\[
+\operatorname{E}
+\left[
+    \beta_{\mathrm{dur}}
+    \mid
+    \mathrm{datos}
+\right]
+=
+0.04084.
+\]
+
+Las diferencias son pequeñas. Esta concordancia es esperable debido al
+tamaño de la muestra y al uso de distribuciones previas débiles.
+
+La similitud numérica no elimina la diferencia conceptual. La inferencia
+frecuentista describe propiedades del procedimiento de estimación bajo
+muestreo repetido. La inferencia bayesiana expresa incertidumbre
+posterior condicionada al prior y a los datos observados.
+
+\subsection{Predicción y utilidad operativa}
+
+La regresión logística alcanzó:
+
+\[
+\operatorname{AUC}_{\mathrm{test}}
+=
+0.7740,
+\]
+
+y una media de validación cruzada de:
+
+\[
+\overline{\operatorname{AUC}}_{\mathrm{CV}}
+=
+0.7685
+\pm
+0.0221.
+\]
+
+La proximidad entre ambos resultados indica una capacidad discriminativa
+estable dentro del esquema de evaluación utilizado.
+
+Sin embargo, una AUC cercana a \(0.77\) no implica una clasificación
+perfecta ni determina automáticamente una política crediticia adecuada.
+El modelo ordena razonablemente los perfiles, pero existe un solapamiento
+considerable entre las clases.
+
+La utilidad operativa depende de tres niveles diferentes:
+
+\begin{enumerate}
+    \item \textbf{Estimación del riesgo:} producción de una probabilidad
+    individual de mal crédito;
+
+    \item \textbf{Discriminación:} capacidad de ordenar correctamente
+    casos de mayor y menor riesgo;
+
+    \item \textbf{Decisión:} elección de un umbral compatible con los
+    costos y objetivos de la institución.
+\end{enumerate}
+
+Un modelo puede mostrar una discriminación estable y, al mismo tiempo,
+producir decisiones costosas cuando se utiliza un umbral inadecuado.
+
+\subsection{Implicancias para una política crediticia}
+
+Los resultados sugieren que las operaciones de larga duración y elevada
+carga de cuota requieren una revisión más cuidadosa. Esto no implica que
+deban rechazarse automáticamente. Una política de gestión podría
+considerar:
+
+\begin{itemize}
+    \item reducir el plazo cuando la capacidad de pago sea limitada;
+
+    \item solicitar garantías adicionales en operaciones de mayor riesgo;
+
+    \item ajustar el monto o la estructura de cuotas;
+
+    \item establecer una revisión manual para probabilidades cercanas al
+    umbral;
+
+    \item incorporar información financiera más reciente antes de la
+    decisión final.
+\end{itemize}
+
+El monto no debería utilizarse aisladamente como argumento de riesgo. Su
+asociación marginal desaparece después de considerar la duración y otras
+características.
+
+Del mismo modo, categorías personales o históricas no deben convertirse
+automáticamente en reglas de exclusión. Su utilización debe someterse a
+criterios de pertinencia, equidad y regulación.
+
+\subsection{Respuesta integrada final}
+
+La probabilidad de mal riesgo crediticio se asocia principalmente con la
+combinación de plazos prolongados, mayor carga de la cuota y señales menos
+favorables de liquidez o estabilidad financiera.
+
+La duración es el factor numérico más consistente: aparece en el análisis
+exploratorio, la comparación frecuentista, la regresión logística y la
+posterior bayesiana. El estado de cuenta, los ahorros, el historial
+crediticio y la vivienda complementan esta señal.
+
+El monto y la edad muestran diferencias marginales, pero no conservan
+evidencia condicional dentro del modelo final. El propósito está asociado
+globalmente con el riesgo, aunque su magnitud es pequeña y su utilidad
+principal es la segmentación.
+
+Finalmente, el desempeño del sistema no depende únicamente de la calidad
+del modelo. La selección del umbral modifica sustancialmente los errores
+y los costos. Bajo la matriz \(5:1\), el umbral \(1/6\) resulta más
+coherente que \(0.50\), porque prioriza la detección de malos créditos y
+reduce el costo total observado.
+
+En consecuencia, el modelo debe entenderse como una herramienta de apoyo
+a la decisión: combina información sobre el perfil y la operación,
+produce una estimación de riesgo y permite adaptar la clasificación a los
+costos del problema. No constituye una explicación causal ni un sistema
+listo para despliegue sin validación externa, recalibración y revisión de
+equidad.
 
 % Contenido previsto:
 % - Respuesta conjunta a las cinco preguntas del Grupo 5.
